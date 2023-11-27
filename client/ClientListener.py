@@ -85,16 +85,15 @@ class ClientListener(Listener):
     def isSuccessful(self):
         return self.success
 class PeerListener(Listener):
-    def __init__(self, local_client):
-        super().__init__(local_client)
-        self.peer_server = None
-    def start(self, peer_server):
-        self.peer_server = peer_server
-        self.peer_server.listen()
+    def __init__(self, client):
+        super().__init__(client)
+    def start(self):
+        self.client.listen(1)
         while self.running:
-            conn, addr = self.peer_server.accept()
+            conn, addr = self.client.accept()
             self.thread = Thread(target=self.listen, args=(conn, addr))
             self.thread.start()
+        
     def listen(self, conn, addr):
         try:
             while self.running:
@@ -124,3 +123,4 @@ class PeerListener(Listener):
             print(f"Exception in client listener: {e}")
         finally:
             self.stop()
+        

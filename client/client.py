@@ -23,19 +23,23 @@ class Client:
         self.peer_listener = PeerListener(self.local_server)
         self.client_listener = ClientListener(self.client)
         self.client_sender = ClientSender(self.client)
+        self.listen_Server = None
+        self.listen_Peer = None
         self.local_respiratory = Database()
         self.controller()
 
     def start(self):
         try:
             self.client.connect((self.server_host, self.server_port))
-            self.client_listener.start()
+            self.listen_Server = Thread(target=self.client_listener.start)
+            self.listen_Server.start()
             print(f"Client connected to {self.server_host}:{self.server_port}")
-            self.local_host = self.client.gethostbyname_ex(socket.gethostname())[2][1]
-            self.local_port = '5001'
+            self.local_host = socket.gethostbyname_ex(socket.gethostname())[2][1]
+            self.local_port = 5001
             print(f"Peer Server listening on {self.local_host}:{self.local_port}")
             self.local_server.bind((self.local_host, self.local_port))
-            self.peer_listener.start()
+            self.listen_Peer = Thread(target=self.peer_listener.start)
+            self.listen_Peer.start()
             self.create_repository()
             self.create_file_system()
         except ConnectionRefusedError:
