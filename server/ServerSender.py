@@ -45,7 +45,8 @@ class ServerSender:
                     for file in repo:
                         file_data = File(file[2],file[3],file[4],file[5])
                         file_data.print_file()
-            return False
+            else:
+                print("User not found")
         except Exception as e:
             print(e)
     def stop(self,clients):

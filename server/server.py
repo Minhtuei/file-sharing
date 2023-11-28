@@ -29,7 +29,6 @@ class Server:
             self.Listener.stop()
             sleep(1)
             self.server.close()
-
             print("Server stopped.")
         except Exception as e:
             print(f"Exception in server: {e}")

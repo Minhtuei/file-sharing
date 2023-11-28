@@ -4,6 +4,8 @@ from ClientSender import ClientSender
 import struct
 from time import sleep
 from Database import Database
+import ast
+import os
 class Listener:
     def __init__(self, client):
         self.client = client
@@ -36,6 +38,9 @@ class Listener:
 class ClientListener(Listener):
     def __init__(self, client):
         super().__init__(client)
+        self.fetch_peer = None
+    def get_fetch_peers(self):
+        return self.fetch_peer
     def start(self):
         self.thread = Thread(target=self.listen)
         self.thread.start()
@@ -65,8 +70,13 @@ class ClientListener(Listener):
                         self.client.sendall(message.encode())
                     elif response_code == self.response_code.FETCH_SUCCESS():
                         self.local_respiratory = Database()
-                        data = self.receive_message(self.client)
-                        file_data = data.split(",")
+                        peers = self.receive_message(self.client)
+                        peers = ast.literal_eval(peers)
+                        print("List of peers that have the file:")
+                        for peer in peers:
+                            print(f"Hostname: {peer[0]}, IP Address: {peer[1]}")
+                        selected_peer = int(input("Enter the index of the peer you want to download from: "))
+                        self.fetch_peer = peers[selected_peer]
                     elif response_code == self.response_code.FILE_NOT_FOUND():
                         print("File not found.")
                     elif response_code == self.response_code.STOP():
@@ -87,6 +97,9 @@ class ClientListener(Listener):
 class PeerListener(Listener):
     def __init__(self, client):
         super().__init__(client)
+        self.local_repository_dir = None
+    def set_local_repository(self, local_repository_dir):
+        self.local_repository_dir = local_repository_dir
     def start(self):
         self.client.listen(1)
         while self.running:
@@ -97,22 +110,24 @@ class PeerListener(Listener):
     def listen(self, conn, addr):
         try:
             while self.running:
-                response_code = self.receive_message(conn)
-                if response_code:
-                    command = response_code.split(" ")[0]
-                    parameter = response_code.split(" ")[1:]
+                data = self.receive_message(conn)
+                if data:
+                    command = data.split(" ")[0]
+                    parameter = data.split(" ")[1:]
                     if command == "download":
-                        self.client.local_respiratory = Database()
-                        file_data = self.client.local_respiratory.get_file(parameter[0])
+                        file_name = parameter[0]
                         # read the file
-                        file_path = os.path.join(self.client.local_respiratory_dir, file_data[1])
+                        file_path = os.path.join(self.local_repository_dir, file_name)
                         file = open(file_path, "rb")
                         while True:
+                            current_pos = file.tell()
                             data = file.read(1024)
                             if not data:
                                 break
                             conn.sendall(data)
+                            file.seek(current_pos + 1024)
                         file.close()
+                        conn.sendall(b"EOF")
                         print("File sent.")
 
         except ConnectionAbortedError:

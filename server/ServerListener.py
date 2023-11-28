@@ -90,6 +90,7 @@ class ServerListener:
                         self.ping_data = parameters[0]
                     elif command == "fetch":
                         try:
+                            self.auth = AuthController()
                             file_name = parameters[0]
                             response = self.auth.fetch(file_name)
                             conn.sendall(response[0].encode())

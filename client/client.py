@@ -4,7 +4,7 @@ import socket
 from datetime import datetime
 from threading import Thread
 from time import sleep
-
+import struct
 import FileData as fd
 from ClientListener import ClientListener, PeerListener
 from ClientSender import ClientSender
@@ -42,6 +42,7 @@ class Client:
             self.listen_Peer.start()
             self.create_repository()
             self.create_file_system()
+            self.peer_listener.set_local_repository(self.local_respiratory_dir)
         except ConnectionRefusedError:
             print ("Server is not running. Please start the server first.")
             return
@@ -107,6 +108,9 @@ class Client:
     def controller(self):
         while True:
             input_command = input("Enter a command: ").split()
+            if len(input_command) == 0:
+                print("Invalid command. Type 'help' for more information.")
+                continue
             match input_command[0]:
                 case "help":
                     print("""
@@ -131,7 +135,29 @@ class Client:
                     if len(input_command) < 2:
                         print("Invalid command. Type 'help' for more information.")
                     else:
-                        self.client_sender.fetch(input_command[1]);
+                        self.client_sender.fetch(input_command[1])
+                        while self.client_listener.get_fetch_peers() == None:
+                            sleep(1)
+                        selected_peer = self.client_listener.get_fetch_peers()
+                        self.peer_client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                        self.peer_client.connect((selected_peer[1], 5002))
+                        mgs = f"download {input_command[1]}"
+                        length = len(mgs)
+                        packed_length = struct.pack("!I", length)
+                        self.peer_client.sendall(packed_length)
+                        self.peer_client.sendall(mgs.encode())
+                        file = open(os.path.join(self.local_respiratory_dir, input_command[1]), "wb")
+                        while True:
+                            current_pos = file.tell()
+                            data = self.peer_client.recv(1024)
+                            if data.decode() == "EOF":
+                                break
+                            file.write(data)
+                            file.seek(current_pos + len(data))
+                            
+                        file.close()
+                        print("File downloaded successfully.") 
+                        self.peer_client.close()             
                 case "publish":
                     if len(input_command) < 3:
                         print("Invalid command. Type 'help' for more information.")

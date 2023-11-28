@@ -34,15 +34,12 @@ class AuthController():
         else:
             return self.response_code.BAD_REQUEST()         
     def fetch(self,file_name):
-        if self.user:
-            data= self.database.fetch(file_name)
-            print(data)
-            if len(data) == 0:
-                return self.response_code.FILE_NOT_FOUND(),None
-            else:
-                return self.response_code.FETCH_SUCCESS(),data
+        data= self.database.fetch(file_name)
+        print(data)
+        if len(data) == 0:
+            return self.response_code.FILE_NOT_FOUND(),None
         else:
-            return self.response_code.USER_NOT_FOUND()                                   
+            return self.response_code.FETCH_SUCCESS(),data                             
     def get_files(self,owner_id):
         file = self.database.get_files(owner_id)
         return file
