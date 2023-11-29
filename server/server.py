@@ -64,6 +64,8 @@ class Server:
     def command(self):
         while True:
             input_command = input("Enter a command: ").split()
+            if len(input_command) == 0:
+                continue
             match input_command[0]:
                 case "help":
                     print("""

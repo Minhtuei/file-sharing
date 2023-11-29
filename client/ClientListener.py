@@ -103,10 +103,15 @@ class PeerListener(Listener):
     def start(self):
         self.client.listen(1)
         while self.running:
-            conn, addr = self.client.accept()
-            self.thread = Thread(target=self.listen, args=(conn, addr))
-            self.thread.start()
-        
+            try:
+                conn, addr = self.client.accept()
+                self.thread = Thread(target=self.listen, args=(conn, addr))
+                self.thread.start()
+            except Exception as e:
+                if not self.running:
+                    break
+                else:
+                    print(f"Exception in peer listener: {e}")
     def listen(self, conn, addr):
         try:
             while self.running:

@@ -61,7 +61,7 @@ class Client:
             sleep(1)
     def stop(self):
         self.client_sender.stop()
-        # self.peer_listener.stop()
+        self.peer_listener.stop()
         self.client_listener.stop()
         print("Client stopped.")
     def create_repository(self):
@@ -131,7 +131,7 @@ class Client:
         file_description = f"Downloaded from {selected_peer[0]}".replace(" ", "_")
         new_file = fd.File(file_name, file_size,file_date, file_description)
         self.local_respiratory.add_file(new_file)
-        # self.client_sender.publish(new_file) 
+        self.client_sender.publish(new_file) 
     def controller(self):
         while True:
             input_command = input("Enter a command: ").split()

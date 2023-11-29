@@ -8,11 +8,9 @@ class ServerListener:
         self.server = server
         self.thread = None
         self.running = True
-        self.auth = None
         self.status = StatusCode()
         self.clients = []
         self.ping_data = None
-        
     def start(self):
         self.server.listen(1)
         print(f"Server listening on {self.server.getsockname()}")
@@ -21,7 +19,7 @@ class ServerListener:
             try:
                 conn, addr = self.server.accept()
                 print(f"Connection from {addr}")
-                self.thread = Thread(target=self.listen, args=(conn, addr))
+                self.thread = Thread(target=self.listen, args=(conn, addr,))
                 self.thread.start()
             except Exception as e:
                 if not self.running:
@@ -52,6 +50,7 @@ class ServerListener:
 
     def listen(self, conn, addr):
         self.clients.append((conn,addr))
+        auth = AuthController()
         try:
             while self.running:
                 data = self.receive_message(conn)
@@ -63,36 +62,33 @@ class ServerListener:
                     command = data.split()[0]
                     parameters = data.split()[1:]
                     if command == "login":
-                        self.auth = AuthController()
                         username = parameters[0]
                         password = parameters[1]
                         try:
-                            response = self.auth.login(username, password, ipAddress, peerPort)
+                            response = auth.login(username, password, ipAddress, peerPort)
                             conn.sendall(response.encode())
                         except Exception as e:
                             print(e)
                     elif command == "register":
-                        self.auth = AuthController()
                         username = parameters[0]
                         password = parameters[1]
                         try:
-                            response = self.auth.register(username, password, ipAddress, peerPort)
+                            response = auth.register(username, password, ipAddress, peerPort)
                             conn.sendall(response.encode())
                         except Exception as e:
                             print(e)
                     elif command == "publish":
                         try:
                             file = parameters
-                            conn.sendall(self.auth.publish(file).encode())
+                            conn.sendall(auth.publish(file).encode())
                         except Exception as e:
                             print(e)
                     elif command == "ping":
                         self.ping_data = parameters[0]
                     elif command == "fetch":
                         try:
-                            self.auth = AuthController()
                             file_name = parameters[0]
-                            response = self.auth.fetch(file_name)
+                            response = auth.fetch(file_name)
                             conn.sendall(response[0].encode())
                             if response[0] == self.status.FETCH_SUCCESS():
                                 message = str(response[1])
