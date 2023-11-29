@@ -11,7 +11,7 @@ class Server:
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.Listener = ServerListener(self.server)
         self.Sender = ServerSender(self.server)
-        self.listen_thread = Thread(target=self.Listener.start)
+        self.listen_thread = Thread(target=self.Listener.start,)
         self.controller = Thread(target=self.command)
         self.controller.start()
     def start(self):
@@ -30,6 +30,7 @@ class Server:
             sleep(1)
             self.server.close()
             print("Server stopped.")
+            print(self.listen_thread.is_alive())
         except Exception as e:
             print(f"Exception in server: {e}")
     def ping(self, hostname):

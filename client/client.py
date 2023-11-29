@@ -104,7 +104,34 @@ class Client:
             new_file = fd.File(file_name, file_size,file_date, file_description)
             self.local_respiratory.add_file(new_file)
             self.client_sender.publish(new_file)
-            
+    def fetch(self, file_name):
+        self.client_sender.fetch(file_name)
+        while self.client_listener.get_fetch_peers() == None:
+            sleep(1)
+        selected_peer = self.client_listener.get_fetch_peers()
+        self.peer_client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.peer_client.connect((selected_peer[1], self.local_port+1))
+        mgs = f"download {file_name}"
+        length = len(mgs)
+        packed_length = struct.pack("!I", length)
+        self.peer_client.sendall(packed_length)
+        self.peer_client.sendall(mgs.encode())
+        with open(os.path.join(self.local_respiratory_dir, file_name), "wb") as file:
+            while True:
+                data = self.peer_client.recv(4096)
+                if b"EOF" in data:
+                    data = data.replace(b"EOF", b"")
+                    file.write(data)
+                    break
+                file.write(data)
+        print("File downloaded successfully.") 
+        self.peer_client.close()
+        file_size = os.path.getsize(os.path.join(self.local_respiratory_dir, file_name))
+        file_date = datetime.now().strftime("%H:%M:%S-%d/%m/%Y")
+        file_description = f"Downloaded from {selected_peer[0]}".replace(" ", "_")
+        new_file = fd.File(file_name, file_size,file_date, file_description)
+        self.local_respiratory.add_file(new_file)
+        # self.client_sender.publish(new_file) 
     def controller(self):
         while True:
             input_command = input("Enter a command: ").split()
@@ -135,29 +162,7 @@ class Client:
                     if len(input_command) < 2:
                         print("Invalid command. Type 'help' for more information.")
                     else:
-                        self.client_sender.fetch(input_command[1])
-                        while self.client_listener.get_fetch_peers() == None:
-                            sleep(1)
-                        selected_peer = self.client_listener.get_fetch_peers()
-                        self.peer_client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                        self.peer_client.connect((selected_peer[1], 5002))
-                        mgs = f"download {input_command[1]}"
-                        length = len(mgs)
-                        packed_length = struct.pack("!I", length)
-                        self.peer_client.sendall(packed_length)
-                        self.peer_client.sendall(mgs.encode())
-                        file = open(os.path.join(self.local_respiratory_dir, input_command[1]), "wb")
-                        while True:
-                            current_pos = file.tell()
-                            data = self.peer_client.recv(1024)
-                            if data.decode() == "EOF":
-                                break
-                            file.write(data)
-                            file.seek(current_pos + len(data))
-                            
-                        file.close()
-                        print("File downloaded successfully.") 
-                        self.peer_client.close()             
+                        self.fetch(input_command[1]);
                 case "publish":
                     if len(input_command) < 3:
                         print("Invalid command. Type 'help' for more information.")

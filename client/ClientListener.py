@@ -118,17 +118,15 @@ class PeerListener(Listener):
                         file_name = parameter[0]
                         # read the file
                         file_path = os.path.join(self.local_repository_dir, file_name)
-                        file = open(file_path, "rb")
-                        while True:
-                            current_pos = file.tell()
-                            data = file.read(1024)
-                            if not data:
-                                break
-                            conn.sendall(data)
-                            file.seek(current_pos + 1024)
-                        file.close()
+                        with open(file_path, "rb") as file:
+                            while True:
+                                data = file.read(4096)  # Use a larger buffer size for optimization
+                                if not data:
+                                    break
+                                conn.sendall(data)
                         conn.sendall(b"EOF")
                         print("File sent.")
+                        conn.close()
 
         except ConnectionAbortedError:
             print("Connection to the server was aborted.")
