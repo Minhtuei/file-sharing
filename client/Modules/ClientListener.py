@@ -1,11 +1,14 @@
-from threading import Thread
-from StatusCode import StatusCode
-from ClientSender import ClientSender
-import struct
-from time import sleep
-from Database import Database
 import ast
 import os
+import struct
+from threading import Thread
+from time import sleep
+
+from Modules.ClientSender import ClientSender
+from Modules.Database import Database
+from Modules.StatusCode import StatusCode
+
+
 class Listener:
     def __init__(self, client):
         self.client = client
@@ -88,10 +91,10 @@ class ClientListener(Listener):
             print("Connection to the server was aborted.")
         except OSError:
             print("Connection to the server was forcibly closed.")
+            self.stop()
         except Exception as e:
             print(f"Exception in client listener: {e}")
-        finally:
-            self.stop()
+
     def isSuccessful(self):
         return self.success
 class PeerListener(Listener):

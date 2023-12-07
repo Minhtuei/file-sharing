@@ -56,14 +56,14 @@ class ServerListener:
                 data = self.receive_message(conn)
                 if data is None:
                     break  # Connection closed
-                ipAddress = addr[0]
-                peerPort = addr[1]
                 if data:
                     command = data.split()[0]
                     parameters = data.split()[1:]
                     if command == "login":
                         username = parameters[0]
                         password = parameters[1]
+                        ipAddress = parameters[2]
+                        peerPort = parameters[3]
                         try:
                             response = auth.login(username, password, ipAddress, peerPort)
                             conn.sendall(response.encode())
@@ -72,6 +72,8 @@ class ServerListener:
                     elif command == "register":
                         username = parameters[0]
                         password = parameters[1]
+                        ipAddress = parameters[2]
+                        peerPort = parameters[3]
                         try:
                             response = auth.register(username, password, ipAddress, peerPort)
                             conn.sendall(response.encode())
@@ -101,9 +103,11 @@ class ServerListener:
                     elif command == "exit":
                         print(f"Connection closed: {addr}")
                         self.clients.remove((conn,addr))
+                        auth.setStatus(0)
                         conn.close()
                         break
         except OSError:
             print(f"Connection closed: {addr}")
         except Exception as e:
-            print(f"Exception in server listener listen: {e}") 
+            print(f"Exception in server listener listen: {e}")
+            auth.close() 

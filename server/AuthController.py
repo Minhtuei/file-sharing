@@ -8,7 +8,7 @@ class AuthController():
         self.user = None
 
     def login(self, hostname, password, ipAddress, peerPort):
-        print(f"Login request: {hostname} {password} {ipAddress}")
+        print(f"Login request: {hostname} {password} {ipAddress} {peerPort}")
         self.user = self.database.get_user(hostname)
         if (not self.user):
             return self.response_code.USER_NOT_FOUND()
@@ -19,7 +19,7 @@ class AuthController():
             return self.response_code.OK()
 
     def register(self, hostname, password, ipAddress, peerPort):
-        print(f"Register request: {hostname} {password} {ipAddress}")
+        print(f"Register request: {hostname} {password} {ipAddress} {peerPort}")
         if (self.database.get_user(hostname) != None):
             return self.response_code.USER_ALREADY_EXISTS()
         else:
@@ -45,3 +45,8 @@ class AuthController():
         return file
     def get_user(self,hostname):
         return self.database.get_user(hostname)
+    def setStatus(self,status):
+        self.database.update_status(self.user[0],status)
+    def close(self):
+        self.database.close()
+        
