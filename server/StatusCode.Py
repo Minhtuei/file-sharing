@@ -1,9 +1,10 @@
 class StatusCode():
     def __init__(self):
-        self.OK_CODE = 200
-        self.UPLOAD_SUCCESS_CODE = 201
-        self.PING_CODE = 202
-        self.FETCH_SUCCESS_CODE = 203
+        self.LOGIN_SUCCESS_CODE = 200
+        self.REGISTER_SUCCESS_CODE = 201
+        self.UPLOAD_SUCCESS_CODE = 202
+        self.PING_CODE = 203
+        self.FETCH_SUCCESS_CODE = 204
         self.BAD_REQUEST_CODE = 400
         self.USER_NOT_FOUND_CODE = 401
         self.WRONG_PASSWORD_CODE = 402
@@ -11,8 +12,10 @@ class StatusCode():
         self.STOP_CODE = 404
         self.FILE_NOT_FOUND_CODE = 405
 
-    def OK(self):
-        return str(self.OK_CODE)
+    def LOGIN_SUCCESS(self):
+        return str(self.LOGIN_SUCCESS_CODE)
+    def REGISTER_SUCCESS(self):
+        return str(self.REGISTER_SUCCESS_CODE)
     def BAD_REQUEST(self):
         return str(self.BAD_REQUEST_CODE)
     def USER_NOT_FOUND(self):

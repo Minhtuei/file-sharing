@@ -16,7 +16,7 @@ class AuthController():
             return self.response_code.WRONG_PASSWORD()
         else:
             self.database.update_user(hostname, ipAddress, peerPort)
-            return self.response_code.OK()
+            return self.response_code.LOGIN_SUCCESS()
 
     def register(self, hostname, password, ipAddress, peerPort):
         print(f"Register request: {hostname} {password} {ipAddress} {peerPort}")
@@ -25,7 +25,7 @@ class AuthController():
         else:
             self.database.add_user(hostname, password, ipAddress, peerPort)
             self.user = self.database.get_user(hostname)
-            return self.response_code.OK()
+            return self.response_code.REGISTER_SUCCESS()
     def publish(self,file):
         if self.user:
             print(file)

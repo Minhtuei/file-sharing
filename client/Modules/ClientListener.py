@@ -3,7 +3,7 @@ import os
 import struct
 from threading import Thread
 from time import sleep
-
+from datetime import datetime
 from Modules.ClientSender import ClientSender
 from Modules.Database import Database
 from Modules.StatusCode import StatusCode
@@ -14,8 +14,9 @@ class Listener:
         self.client = client
         self.thread = None
         self.success = False
-        self.response_code = StatusCode()
+        self.statusCode = StatusCode()
         self.running = True
+        self.notifications = []
     def start(self):
         pass
     def stop(self):
@@ -38,6 +39,8 @@ class Listener:
         pass
     def isSuccessful(self):
         pass
+    def get_notifications(self):
+        return self.notifications
 class ClientListener(Listener):
     def __init__(self, client):
         super().__init__(client)
@@ -52,26 +55,36 @@ class ClientListener(Listener):
             while self.running:
                 response_code = self.client.recv(3).decode('utf-8')
                 if response_code:  # Connection closed by the server
-                    if response_code == self.response_code.OK():
+                    if response_code == self.statusCode.LOGIN_SUCCESS():
                         print("Login successful.")
                         self.success = True
-                    elif response_code == self.response_code.USER_NOT_FOUND():
+                        self.notifications.append((datetime.now().strftime("%H:%M:%S-%d/%m/%Y"), response_code ,"Login successful."))
+                    elif response_code == self.statusCode.REGISTER_SUCCESS():
+                        print("Registration successful.")
+                        self.notifications.append((datetime.now().strftime("%H:%M:%S-%d/%m/%Y"), response_code ,"Registration successful."))
+                    elif response_code == self.statusCode.USER_NOT_FOUND():
                         print("User not found.")
-                    elif response_code == self.response_code.WRONG_PASSWORD():
+                        self.notifications.append((datetime.now().strftime("%H:%M:%S-%d/%m/%Y"), response_code ,"User not found."))
+                    elif response_code == self.statusCode.WRONG_PASSWORD():
                         print("Wrong password.")
-                    elif response_code == self.response_code.USER_ALREADY_EXISTS():
+                        self.notifications.append((datetime.now().strftime("%H:%M:%S-%d/%m/%Y"), response_code ,"Wrong password."))
+                    elif response_code == self.statusCode.USER_ALREADY_EXISTS():
                         print("User already exists.")
-                    elif response_code == self.response_code.UPLOAD_SUCCESS():
+                        self.notifications.append((datetime.now().strftime("%H:%M:%S-%d/%m/%Y"), response_code ,"User already exists."))
+                    elif response_code == self.statusCode.UPLOAD_SUCCESS():
                         print("File uploaded successfully.")
-                    elif response_code == self.response_code.PING():
+                        self.notifications.append((datetime.now().strftime("%H:%M:%S-%d/%m/%Y"), response_code ,"File uploaded successfully."))
+                    elif response_code == self.statusCode.PING():
                         data = self.receive_message(self.client)
+                        self.notifications.append((datetime.now().strftime("%H:%M:%S-%d/%m/%Y"), response_code ,"Server has just pinged you."))
                         message = f"ping {data}"
                         length = len(message)
                         packed_length = struct.pack("!I", length)
                         print (f"Sending message: {message}")
                         self.client.sendall(packed_length)
                         self.client.sendall(message.encode())
-                    elif response_code == self.response_code.FETCH_SUCCESS():
+                        self.notifications.append((datetime.now().strftime("%H:%M:%S-%d/%m/%Y"), self.statusCode.PING() ,"You have just replied to the server."))
+                    elif response_code == self.statusCode.FETCH_SUCCESS():
                         self.local_respiratory = Database()
                         peers = self.receive_message(self.client)
                         peers = ast.literal_eval(peers)
@@ -80,13 +93,16 @@ class ClientListener(Listener):
                             print(f"Hostname: {peer[0]}, IP Address: {peer[1]}")
                         selected_peer = int(input("Enter the index of the peer you want to download from: "))
                         self.fetch_peer = peers[selected_peer]
-                    elif response_code == self.response_code.FILE_NOT_FOUND():
+                        self.notifications.append((datetime.now().strftime("%H:%M:%S-%d/%m/%Y"), response_code ,"You have just received the list of peers that have the file."))
+                    elif response_code == self.statusCode.FILE_NOT_FOUND():
                         print("File not found.")
-                    elif response_code == self.response_code.STOP():
+                        self.notifications.append((datetime.now().strftime("%H:%M:%S-%d/%m/%Y"), response_code ,"File not found."))
+                    elif response_code == self.statusCode.BAD_REQUEST():
+                        print("Bad request.")
+                        self.notifications.append((datetime.now().strftime("%H:%M:%S-%d/%m/%Y"), response_code ,"Bad request."))
+                    elif response_code == self.statusCode.STOP():
                         self.success = False
                         self.stop()
-                    elif response_code == self.response_code.BAD_REQUEST():
-                        print("Bad request.")
         except ConnectionAbortedError:
             print("Connection to the server was aborted.")
         except OSError:
@@ -134,6 +150,7 @@ class PeerListener(Listener):
                                 conn.sendall(data)
                         conn.sendall(b"EOF")
                         print("File sent.")
+                        self.notifications.append((datetime.now().strftime("%H:%M:%S-%d/%m/%Y"), self.statusCode.DOWNLOAD_SUCCESS() ,"File sent."))
                         conn.close()
 
         except ConnectionAbortedError:

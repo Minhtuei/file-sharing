@@ -83,6 +83,14 @@ class Client:
             for file in local_repo:
                 file = fd.File(file[1], file[2], file[3], file[4].replace("_", " "))
                 file.print_file()
+    def notify(self):
+        notifications = self.client_listener.get_notifications()
+        if len(notifications) == 0:
+            print("No notifications.")
+        else:
+            print("List of notifications:")
+            for notification in notifications:
+                print(f"{notification[0]}: {notification[2]}")
     def publish(self, local_file_name, file_name):
         try:
             file_path = os.path.join(self.local_file_system_dir, local_file_name)

@@ -36,10 +36,10 @@ class Client:
         self.local_port = server_port
 
     def start(self):
+        server_host_ = input("Enter server host (auto for automatic): ")
+        if server_host_ != "auto":
+            self.server_host = server_host_
         try:
-            server_host_ = input("Enter server host (auto for automatic): ")
-            if server_host_ != "auto":
-                self.server_host = server_host_
             self.client.connect((self.server_host, self.server_port))
             self.listen_Server = Thread(target=self.client_listener.start)
             self.listen_Server.start()
@@ -97,6 +97,14 @@ class Client:
             for file in local_repo:
                 file = fd.File(file[1], file[2], file[3], file[4].replace("_", " "))
                 file.print_file()
+    def notify(self):
+        notifications = self.client_listener.get_notifications()
+        if len(notifications) == 0:
+            print("No notifications.")
+        else:
+            print("List of notifications:")
+            for notification in notifications:
+                print(f"{notification[0]}: {notification[2]}")
     def publish(self, local_file_name, file_name):
         try:
             file_path = os.path.join(self.local_file_system_dir, local_file_name)
@@ -165,6 +173,7 @@ class Client:
                         > start: start the client
                         > stop: stop the client
                         > list: list all files in the local repository
+                        > notify: list all notifications from the server
                         > publish "lname" "fname": a local file (which is stored in the client's file system at "lname") is added to the 
                             client's repository as a file named "fname" and this information is conveyed to the server
                         > describe "fname" "description": add a description to the file "fname" in the local repository
@@ -177,6 +186,8 @@ class Client:
                     break;
                 case "list":
                     self.list_files();
+                case "notify":
+                    self.notify();
                 case "fetch":
                     if len(input_command) < 2:
                         print("Invalid command. Type 'help' for more information.")

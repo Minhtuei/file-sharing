@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'mainkhGyzk.ui'
+## Form generated from reading UI file 'mainAoZvxs.ui'
 ##
 ## Created by: Qt User Interface Compiler version 5.14.1
 ##
@@ -1281,12 +1281,12 @@ class Ui_MainWindow(object):
         self.gridLayout = QGridLayout()
         self.gridLayout.setObjectName(u"gridLayout")
         self.gridLayout.setContentsMargins(-1, -1, -1, 0)
-        self.lineEdit = QLineEdit(self.frame_content_wid_1)
-        self.lineEdit.setObjectName(u"lineEdit")
-        self.lineEdit.setMinimumSize(QSize(0, 30))
-        self.lineEdit.setStyleSheet(u"background-color: rgb(33, 37, 43);")
+        self.descriptionInput = QLineEdit(self.frame_content_wid_1)
+        self.descriptionInput.setObjectName(u"descriptionInput")
+        self.descriptionInput.setMinimumSize(QSize(0, 30))
+        self.descriptionInput.setStyleSheet(u"background-color: rgb(33, 37, 43);")
 
-        self.gridLayout.addWidget(self.lineEdit, 0, 0, 1, 1)
+        self.gridLayout.addWidget(self.descriptionInput, 0, 0, 1, 1)
 
         self.publishBtn = QPushButton(self.frame_content_wid_1)
         self.publishBtn.setObjectName(u"publishBtn")
@@ -1422,12 +1422,12 @@ class Ui_MainWindow(object):
         self.gridLayout_2 = QGridLayout()
         self.gridLayout_2.setObjectName(u"gridLayout_2")
         self.gridLayout_2.setContentsMargins(-1, -1, -1, 0)
-        self.lineEdit_2 = QLineEdit(self.frame_content_wid_2)
-        self.lineEdit_2.setObjectName(u"lineEdit_2")
-        self.lineEdit_2.setMinimumSize(QSize(0, 30))
-        self.lineEdit_2.setStyleSheet(u"background-color: rgb(33, 37, 43);")
+        self.searchFileInput = QLineEdit(self.frame_content_wid_2)
+        self.searchFileInput.setObjectName(u"searchFileInput")
+        self.searchFileInput.setMinimumSize(QSize(0, 30))
+        self.searchFileInput.setStyleSheet(u"background-color: rgb(33, 37, 43);")
 
-        self.gridLayout_2.addWidget(self.lineEdit_2, 0, 0, 1, 1)
+        self.gridLayout_2.addWidget(self.searchFileInput, 0, 0, 1, 1)
 
         self.searchBtn = QPushButton(self.frame_content_wid_2)
         self.searchBtn.setObjectName(u"searchBtn")
@@ -1649,7 +1649,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.stackedWidget.setCurrentIndex(1)
+        self.stackedWidget.setCurrentIndex(2)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -1714,8 +1714,8 @@ class Ui_MainWindow(object):
         self.registerBtn.setText(QCoreApplication.translate("MainWindow", u"Register", None))
         self.loginBtn.setText(QCoreApplication.translate("MainWindow", u"Login", None))
         self.labelBoxBlenderInstalation.setText(QCoreApplication.translate("MainWindow", u"REPOSITORY", None))
-        self.lineEdit.setText("")
-        self.lineEdit.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Type here", None))
+        self.descriptionInput.setText("")
+        self.descriptionInput.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Type here", None))
         self.publishBtn.setText(QCoreApplication.translate("MainWindow", u"Publish", None))
         self.labelVersion_3.setText(QCoreApplication.translate("MainWindow", u"File description", None))
         ___qtablewidgetitem = self.repoTable.horizontalHeaderItem(0)
@@ -1728,8 +1728,8 @@ class Ui_MainWindow(object):
         ___qtablewidgetitem3.setText(QCoreApplication.translate("MainWindow", u"File Description", None));
         self.pushButton_2.setText(QCoreApplication.translate("MainWindow", u"Refresh", None))
         self.labelBoxBlenderInstalation_2.setText(QCoreApplication.translate("MainWindow", u"Fetch", None))
-        self.lineEdit_2.setText("")
-        self.lineEdit_2.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Type here", None))
+        self.searchFileInput.setText("")
+        self.searchFileInput.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Type here", None))
         self.searchBtn.setText(QCoreApplication.translate("MainWindow", u"Search", None))
         self.labelVersion_4.setText(QCoreApplication.translate("MainWindow", u"Search for the file that you want to fetch", None))
         ___qtablewidgetitem4 = self.fetchTable.horizontalHeaderItem(0)

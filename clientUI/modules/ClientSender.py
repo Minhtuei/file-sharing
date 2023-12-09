@@ -24,6 +24,7 @@ class ClientSender:
 
     def register(self,username,password ,ipAddr, peerPort):
         msg = f"register {username} {password} {ipAddr} {peerPort}"
+        print(msg)
         self.send_message(msg)
 
     def publish(self, new_file):
