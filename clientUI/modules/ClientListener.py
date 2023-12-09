@@ -57,10 +57,13 @@ class ClientListener(Listener):
                         self.success = True
                     elif response_code == self.response_code.USER_NOT_FOUND():
                         print("User not found.")
+                        self.success = False
                     elif response_code == self.response_code.WRONG_PASSWORD():
                         print("Wrong password.")
+                        self.success = False
                     elif response_code == self.response_code.USER_ALREADY_EXISTS():
                         print("User already exists.")
+                        self.success = False
                     elif response_code == self.response_code.UPLOAD_SUCCESS():
                         print("File uploaded successfully.")
                     elif response_code == self.response_code.PING():

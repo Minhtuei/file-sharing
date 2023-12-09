@@ -190,3 +190,6 @@ class Client:
                 case default:
                     print("Invalid command. Type 'help' for more information.")
             sleep(1)
+if __name__ == "__main__":
+    client = Client()
+    client.controller()

@@ -37,14 +37,9 @@ class Client:
 
     def start(self):
         try:
-            server_host_ = input("Enter server host (auto for automatic): ")
-            if server_host_ != "auto":
-                self.server_host = server_host_
             self.client.connect((self.server_host, self.server_port))
             self.listen_Server = Thread(target=self.client_listener.start)
             self.listen_Server.start()
-            print(f"Client connected to {self.server_host}:{self.server_port}")
-            print(f"Peer Server listening on {self.local_host}:{self.local_port}")
             self.local_server.bind((self.local_host, self.local_port))
             self.listen_Peer = Thread(target=self.peer_listener.start)
             self.listen_Peer.start()
@@ -57,16 +52,7 @@ class Client:
         except OSError:
             print ("Server is not running. Please start the server first.")
             return
-        print("Please login or register to start using the system.")
-        while not self.client_listener.isSuccessful():
-            msg = input("Enter 'login' or 'register' to continue: ")
-            if msg == "login":
-                self.client_sender.login(self.local_host, self.local_port)
-            elif msg == "register":
-                self.client_sender.register(self.local_host, self.local_port)
-            else:
-                print("Invalid command. Please try again.")
-            sleep(1)
+
     def stop(self):
         try:
             self.client_sender.stop()
@@ -151,42 +137,3 @@ class Client:
         except OSError as e:
             print("The server is not running. Please try again later.")
             self.stop()
-    def controller(self):
-        while True:
-            input_command = input("Enter a command: ").split()
-            if len(input_command) == 0:
-                print("Invalid command. Type 'help' for more information.")
-                continue
-            match input_command[0]:
-                case "help":
-                    print("""
-                        Command format: command "parameter1" "parameter2" ...
-                        List of command:
-                        > start: start the client
-                        > stop: stop the client
-                        > list: list all files in the local repository
-                        > publish "lname" "fname": a local file (which is stored in the client's file system at "lname") is added to the 
-                            client's repository as a file named "fname" and this information is conveyed to the server
-                        > describe "fname" "description": add a description to the file "fname" in the local repository
-                        > fetch "file name": fetch some copy of the target file and add it to the local repository
-                        > download "index": download the file with the index <index> return from the fetch command to local repository on your computer""");
-                case "start":
-                    self.start();
-                case "stop":
-                    self.stop();
-                    break;
-                case "list":
-                    self.list_files();
-                case "fetch":
-                    if len(input_command) < 2:
-                        print("Invalid command. Type 'help' for more information.")
-                    else:
-                        self.fetch(input_command[1]);
-                case "publish":
-                    if len(input_command) < 3:
-                        print("Invalid command. Type 'help' for more information.")
-                    else:
-                        self.publish(input_command[1], input_command[2]);
-                case default:
-                    print("Invalid command. Type 'help' for more information.")
-            sleep(1)

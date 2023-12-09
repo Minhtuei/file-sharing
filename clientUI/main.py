@@ -17,7 +17,7 @@
 import sys
 import os
 import platform
-
+from time import sleep
 # IMPORT / GUI AND MODULES AND WIDGETS
 # ///////////////////////////////////////////////////////////////
 from modules import *
@@ -40,12 +40,13 @@ class MainWindow(QMainWindow):
         global widgets
         widgets = self.ui
         self.client = Client()
-        self.client_thread = Thread(target=self.client.controller, daemon=True )
-        self.client_thread.start()
-        self.ui.serverInput.setText(self.client.server_host)
-        self.ui.ipInput.setText(self.client.local_host)
-        self.ui.peerportInput.setText(str(self.client.local_port))
-        self.loadingRepo()
+        self.client_thread = Thread(target=self.client.start, daemon=True )
+        widgets.serverInput.setText(self.client.server_host)
+        widgets.ipInput.setText(self.client.local_host)
+        widgets.peerportInput.setText(str(self.client.local_port))
+        widgets.btn_repo.setEnabled(False)
+        widgets.btn_fetch.setEnabled(False)
+        widgets.btn_notification.setEnabled(False)
         # USE CUSTOM TITLE BAR | USE AS "False" FOR MAC OR LINUX
         # ///////////////////////////////////////////////////////////////
         Settings.ENABLE_CUSTOM_TITLE_BAR = True
@@ -78,7 +79,7 @@ class MainWindow(QMainWindow):
         widgets.btn_repo.clicked.connect(self.buttonClick)
         widgets.btn_fetch.clicked.connect(self.buttonClick)
         widgets.btn_notification.clicked.connect(self.buttonClick)
-
+        widgets.loginBtn.clicked.connect(self.buttonClick)
         # EXTRA LEFT BOX
         def openCloseLeftBox():
             UIFunctions.toggleLeftBox(self, True)
@@ -141,9 +142,48 @@ class MainWindow(QMainWindow):
 
         if btnName == "btn_notification":
             print("btn_notification")
+        if btnName == "loginBtn":
+            try:
+                self.client_thread.start()
 
-        # PRINT BTN NAME
-        print(f'Button "{btnName}" pressed!')
+            except ConnectionRefusedError:
+                print ("Server is not running. Please start the server first.")
+            except OSError:
+                print("Server is not running. Please start the server first.")
+            self.client.server_host = widgets.serverInput.text()
+            self.client.local_host = widgets.ipInput.text()
+            self.client.local_port = int(widgets.peerportInput.text())
+            self.client.client_sender.login(widgets.usernameInput.text(),widgets.passwordInput.text(),self.client.local_host,self.client.local_port)
+            widgets.registerBtn.setEnabled(False)
+            sleep(3)
+        
+            if not self.client.client_listener.isSuccessful():
+                widgets.loginLabel.setText("Login Failed")
+                widgets.registerBtn.setEnabled(True)
+            else:
+                widgets.loginLabel.setText("Login Successful")
+                self.loadingRepo()
+                widgets.btn_connect.setEnabled(False)
+                widgets.btn_repo.setEnabled(True)
+                widgets.btn_fetch.setEnabled(True)
+                widgets.btn_notification.setEnabled(True)
+        # if btnName == "registerBtn":
+        #     if not self.client_thread.is_alive():
+        #         try:
+        #             self.client_thread.start()
+        #         except ConnectionRefusedError:
+        #             print ("Server is not running. Please start the server first.")
+        #         except OSError:
+        #             print("Server is not running. Please start the server first.")
+        #     else:
+        #         self.client.server_host = widgets.serverInput.text()
+        #         self.client.local_host = widgets.ipInput.text()
+        #         self.client.local_port = int(widgets.peerportInput.text())
+        #         self.client.client_sender.login(widgets.usernameInput.text(),widgets.passwordInput.text(),self.client.local_host,self.client.local_port)
+        #         widgets.registerBtn.setEnabled(False)
+            
+
+
 
 
     # RESIZE EVENTS

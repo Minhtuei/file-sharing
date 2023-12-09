@@ -6,7 +6,7 @@ import time
 from time import sleep
 class Server:
     def __init__(self):
-        self.host = socket.gethostbyname_ex(socket.gethostname())[2][1]
+        self.host = socket.gethostbyname_ex(socket.gethostname())[2][-1]
         self.port = 5000
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.Listener = ServerListener(self.server)

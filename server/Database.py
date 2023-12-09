@@ -31,8 +31,7 @@ class Database:
         )""")
         self.conn.commit()
     def update_user(self, hostname, ipAddress, peerPort):
-        #update user's ip peerPort and isOnline base on hostname and ipAddress
-        self.cursor.execute("UPDATE users SET peerPort=?, isOnline=1 WHERE hostname=? AND ipAddress=?", (peerPort, hostname, ipAddress))
+        self.cursor.execute("UPDATE users SET ipAddress=?, peerPort=?, isOnline=1 WHERE hostname=?", (ipAddress, peerPort, hostname))
         self.conn.commit()
     def update_status(self, hostname,status):
         self.cursor.execute("UPDATE users SET isOnline=? WHERE hostname=?", (status, hostname))
