@@ -6,7 +6,7 @@ from datetime import datetime
 from threading import Thread
 from time import sleep
 
-from Modules import FileData
+from Modules.FileData import File
 from Modules.ClientListener import ClientListener, PeerListener
 from Modules.ClientSender import ClientSender
 from Modules.Database import Database
@@ -41,7 +41,7 @@ class Client:
             self.server_host = server_host_
         try:
             self.client.connect((self.server_host, self.server_port))
-            self.listen_Server = Thread(target=self.client_listener.start)
+            self.listen_Server = Thread(target=self.client_listener.listen)
             self.listen_Server.start()
             print(f"Client connected to {self.server_host}:{self.server_port}")
             print(f"Peer Server listening on {self.local_host}:{self.local_port}")
@@ -51,12 +51,23 @@ class Client:
             self.create_repository()
             self.create_file_system()
             self.peer_listener.set_local_repository(self.local_respiratory_dir)
+            self.login()
         except ConnectionRefusedError:
             print ("Server is not running. Please start the server first.")
             return
         except OSError:
             print ("Server is not running. Please start the server first.")
             return
+
+    def stop(self):
+        try:
+            self.peer_listener.stop()
+            self.client_listener.stop()
+            sleep(1)
+            print("Client stopped.")
+        except Exception as e:
+            self.client_listener.stop()
+    def login(self):
         print("Please login or register to start using the system.")
         while not self.client_listener.isSuccessful():
             msg = input("Enter 'login' or 'register' to continue: ")
@@ -67,14 +78,6 @@ class Client:
             else:
                 print("Invalid command. Please try again.")
             sleep(1)
-    def stop(self):
-        try:
-            self.client_sender.stop()
-            self.peer_listener.stop()
-            self.client_listener.stop()
-            print("Client stopped.")
-        except Exception as e:
-            self.client_listener.stop()
     def create_repository(self):
         self.app_folder = os.path.dirname(os.path.abspath(__file__))
         self.local_respiratory_dir = os.path.join(
@@ -95,7 +98,7 @@ class Client:
             print("No files in local repository.")
         else:
             for file in local_repo:
-                file = fd.File(file[1], file[2], file[3], file[4].replace("_", " "))
+                file = File(file[1], file[2], file[3], file[4].replace("_", " "))
                 file.print_file()
     def notify(self):
         notifications = self.client_listener.get_notifications()
@@ -113,7 +116,9 @@ class Client:
             else:
                 # Create the full destination path
                 destination_path = os.path.join(self.local_respiratory_dir, file_name)
-
+                if os.path.exists(destination_path):
+                    print("File already exists in local repository.")
+                    return
                 # Move the file to the destination directory
                 shutil.move(file_path, destination_path)
 
@@ -121,7 +126,7 @@ class Client:
                 file_size = os.path.getsize(destination_path)
                 file_date = datetime.now().strftime("%H:%M:%S-%d/%m/%Y")
                 file_description = input("Enter file description: ").replace(" ", "_")      
-                new_file = fd.File(file_name, file_size,file_date, file_description)
+                new_file = File(file_name, file_size,file_date, file_description)
                 self.local_respiratory.add_file(new_file)
                 self.client_sender.publish(new_file)
         except OSError as e:

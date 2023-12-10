@@ -46,7 +46,7 @@ class AuthController():
     def get_user(self,hostname):
         return self.database.get_user(hostname)
     def setStatus(self,status):
-        self.database.update_status(self.user[0],status)
+        self.database.update_status(self.user[1],status)
     def close(self):
         self.database.close()
         

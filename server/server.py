@@ -30,7 +30,6 @@ class Server:
             sleep(1)
             self.server.close()
             print("Server stopped.")
-            print(self.listen_thread.is_alive())
         except Exception as e:
             print(f"Exception in server: {e}")
     def ping(self, hostname):

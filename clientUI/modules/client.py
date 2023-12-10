@@ -44,7 +44,6 @@ class Client:
             self.listen_Peer = Thread(target=self.peer_listener.start)
             self.listen_Peer.start()
             self.create_repository()
-            self.create_file_system()
             self.peer_listener.set_local_repository(self.local_respiratory_dir)
         except ConnectionRefusedError:
             print ("Server is not running. Please start the server first.")
@@ -68,12 +67,6 @@ class Client:
         if not os.path.exists(self.local_respiratory_dir):
             os.mkdir(self.local_respiratory_dir)
 
-    def create_file_system(self):
-        self.app_folder = os.path.dirname(os.path.abspath(__file__))
-        self.local_file_system_dir = os.path.join(
-            self.app_folder, "local_file_system")
-        if not os.path.exists(self.local_file_system_dir):
-            os.mkdir(self.local_file_system_dir)
     def list_files(self):
         print("List of files in local repository:")
         local_repo = self.local_respiratory.get_all_files()
@@ -81,7 +74,7 @@ class Client:
             print("No files in local repository.")
         else:
             for file in local_repo:
-                file = fd.File(file[1], file[2], file[3], file[4].replace("_", " "))
+                file = File(file[1], file[2], file[3], file[4].replace("_", " "))
                 file.print_file()
     def notify(self):
         notifications = self.client_listener.get_notifications()
@@ -91,36 +84,36 @@ class Client:
             print("List of notifications:")
             for notification in notifications:
                 print(f"{notification[0]}: {notification[2]}")
-    def publish(self, local_file_name, file_name):
+    def publish(self, local_file_name, file_name,file_path, file_description):
         try:
-            file_path = os.path.join(self.local_file_system_dir, local_file_name)
             if not os.path.exists(file_path):
                 print("File does not exist.")
             else:
                 # Create the full destination path
                 destination_path = os.path.join(self.local_respiratory_dir, file_name)
-
+                if os.path.exists(destination_path):
+                    print("File already exists in local repository. Please use ")
+                    return
                 # Move the file to the destination directory
                 shutil.move(file_path, destination_path)
-
                 # Update local_respiratory
                 file_size = os.path.getsize(destination_path)
                 file_date = datetime.now().strftime("%H:%M:%S-%d/%m/%Y")
-                file_description = input("Enter file description: ").replace(" ", "_")      
-                new_file = fd.File(file_name, file_size,file_date, file_description)
+                new_file = File(file_name, file_size,file_date, file_description)
                 self.local_respiratory.add_file(new_file)
                 self.client_sender.publish(new_file)
         except OSError as e:
             print("The server is not running. Please try again later.")
             self.stop()
     def fetch(self, file_name):
+        self.client_sender.fetch(file_name)
+        while self.client_listener.get_fetch_peers() == None:
+            sleep(1)
+        return self.client_listener.get_fetch_peers()
+    def download(self, selected_host, file_name):
         try:
-            self.client_sender.fetch(file_name)
-            while self.client_listener.get_fetch_peers() == None:
-                sleep(1)
-            selected_peer = self.client_listener.get_fetch_peers()
             self.peer_client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.peer_client.connect((selected_peer[1], self.local_port+1))
+            self.peer_client.connect((selected_host[1], int(selected_host[2])))
             mgs = f"download {file_name}"
             length = len(mgs)
             packed_length = struct.pack("!I", length)
@@ -138,8 +131,8 @@ class Client:
             self.peer_client.close()
             file_size = os.path.getsize(os.path.join(self.local_respiratory_dir, file_name))
             file_date = datetime.now().strftime("%H:%M:%S-%d/%m/%Y")
-            file_description = f"Downloaded from {selected_peer[0]}".replace(" ", "_")
-            new_file = fd.File(file_name, file_size,file_date, file_description)
+            file_description = f"Downloaded from {selected_host[0]}".replace(" ", "_")
+            new_file = File(file_name, file_size,file_date, file_description)
             self.local_respiratory.add_file(new_file)
             self.client_sender.publish(new_file) 
         except OSError as e:

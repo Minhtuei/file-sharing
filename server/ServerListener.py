@@ -35,7 +35,8 @@ class ServerListener:
             client[0].sendall(self.status.STOP().encode('utf-8'))
             client[0].close()
         # Add any cleanup or additional shutdown logic here
-
+        auth = AuthController()
+        auth.close()
     def receive_message(self, conn):
         # Receive the packed length as a 4-byte integer
         packed_length = conn.recv(4)
@@ -104,10 +105,12 @@ class ServerListener:
                         print(f"Connection closed: {addr}")
                         self.clients.remove((conn,addr))
                         auth.setStatus(0)
-                        conn.close()
                         break
         except OSError:
-            print(f"Connection closed: {addr}")
+            print("Connection to the client was forcibly closed.")
+            self.clients.remove((conn,addr))
+            auth.setStatus(0)
+            
         except Exception as e:
             print(f"Exception in server listener listen: {e}")
             auth.close() 

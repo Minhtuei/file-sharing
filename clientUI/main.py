@@ -44,6 +44,7 @@ class MainWindow(QMainWindow):
         self.client_thread = Thread(target=self.client.start, daemon=True )
         self.isStart = False
         self.statusCode = StatusCode()
+        self.selected_file = None
         widgets.serverInput.setText(self.client.server_host)
         widgets.ipInput.setText(self.client.local_host)
         widgets.peerportInput.setText(str(self.client.local_port))
@@ -56,8 +57,8 @@ class MainWindow(QMainWindow):
 
         # APP NAME
         # ///////////////////////////////////////////////////////////////
-        title = "PyDracula - Modern GUI"
-        description = "PyDracula APP - Theme with colors based on Dracula for Python."
+        title = "File Sharing Application - PyDracula"
+        description = "File Sharing Application - Computer Networks Assignment - 2023 - HCMUT "
         # APPLY TEXTS
         self.setWindowTitle(title)
         widgets.titleRightInfo.setText(description)
@@ -79,6 +80,9 @@ class MainWindow(QMainWindow):
         widgets.loginBtn.clicked.connect(self.buttonClick)
         widgets.registerBtn.clicked.connect(self.buttonClick)
         widgets.publishBtn.clicked.connect(self.buttonClick)
+        widgets.openDiaglogBtn.clicked.connect(self.buttonClick)
+        widgets.searchBtn.clicked.connect(self.buttonClick)
+        widgets.fetchBtn.clicked.connect(self.buttonClick)
         # LEFT MENUS
         widgets.btn_connect.clicked.connect(self.buttonClick)
         widgets.btn_repo.clicked.connect(self.buttonClick)
@@ -118,7 +122,7 @@ class MainWindow(QMainWindow):
         widgets.stackedWidget.setCurrentWidget(widgets.homePage)
         widgets.btn_connect.setStyleSheet(UIFunctions.selectMenu(widgets.btn_connect.styleSheet()))
 
-    # HANDLE REPORITORY
+    # HANDLE REPOSITORY
     def addFileToRepo(self, file):
         widgets.repoTable.insertRow(widgets.repoTable.rowCount())
         widgets.repoTable.setItem(widgets.repoTable.rowCount()-1, 0, QTableWidgetItem(file.get_file_name))
@@ -127,6 +131,7 @@ class MainWindow(QMainWindow):
         widgets.repoTable.setItem(widgets.repoTable.rowCount()-1, 3, QTableWidgetItem(file.get_file_description))
     def loadingRepo(self):
         files = self.client.local_respiratory.get_all_files()
+        widgets.repoTable.setRowCount(0)
         for file in files:
             file = File(file[1], file[2], file[3], file[4].replace("_", " "))
             self.addFileToRepo(file)
@@ -157,79 +162,149 @@ class MainWindow(QMainWindow):
             btn.setStyleSheet(UIFunctions.selectMenu(btn.styleSheet())) # SELECT MENU
 
         if btnName == "btn_notification":
-            print("btn_notification")
+            widgets.stackedWidget.setCurrentWidget(widgets.notificationPage)
+            UIFunctions.resetStyle(self, btnName)
+            btn.setStyleSheet(UIFunctions.selectMenu(btn.styleSheet()))
         if btnName == "loginBtn":
             if not self.isStart:
                 try:
                     self.client_thread.start()
                     self.isStart = True
                 except ConnectionRefusedError:
-                    print ("Server is not running. Please start the server first.")
+                    widgets.loginLabel.setText("Server is not running. Please start the server first !")
+                    return
                 except OSError:
-                    print("Server is not running. Please start the server first.")
-            self.client.server_host = widgets.serverInput.text()
-            self.client.local_host = widgets.ipInput.text()
-            self.client.local_port = int(widgets.peerportInput.text())
-            self.client.client_sender.login(widgets.usernameInput.text(),widgets.passwordInput.text(),self.client.local_host,self.client.local_port)
-            widgets.registerBtn.setEnabled(False)
-            widgets.loginBtn.setEnabled(False)
-            sleep(1)
-            if not self.client.client_listener.isSuccessful():
-                widgets.loginLabel.setText("Login Failed")
-                widgets.registerBtn.setEnabled(True)
-                widgets.loginBtn.setEnabled(True)
-            else:
-                widgets.loginLabel.setText("Login Successful")
-                self.loadingRepo()
-                widgets.btn_connect.setEnabled(False)
-                widgets.btn_repo.setEnabled(True)
-                widgets.btn_fetch.setEnabled(True)
-                widgets.btn_notification.setEnabled(True)
+                    widgets.loginLabel.setText("Server is not running. Please start the server first !")
+                    return
+            try:
+                self.client.server_host = widgets.serverInput.text()
+                self.client.local_host = widgets.ipInput.text()
+                self.client.local_port = int(widgets.peerportInput.text())
+                self.client.client_sender.login(widgets.usernameInput.text(),widgets.passwordInput.text(),self.client.local_host,self.client.local_port)
+                widgets.registerBtn.setEnabled(False)
+                widgets.loginBtn.setEnabled(False)
+                sleep(1)
+                if not self.client.client_listener.isSuccessful():
+                    widgets.loginLabel.setText("Login Failed")
+                    widgets.registerBtn.setEnabled(True)
+                    widgets.loginBtn.setEnabled(True)
+                else:
+                    widgets.loginLabel.setText("Login Successful")
+                    self.loadingRepo()
+                    widgets.btn_connect.setEnabled(False)
+                    widgets.btn_repo.setEnabled(True)
+                    widgets.btn_fetch.setEnabled(True)
+                    widgets.btn_notification.setEnabled(True)
+            except ConnectionRefusedError:
+                widgets.loginLabel.setText("Server is not running. Please start the server first !")
+                return
+            except OSError:
+                widgets.loginLabel.setText("Server is not running. Please start the server first !")
+                return
         if btnName == "registerBtn":
             if not self.isStart:
                 try:
                     self.client_thread.start()
                     self.isStart = True
                 except ConnectionRefusedError:
-                    print ("Server is not running. Please start the server first.")
+                    widgets.loginLabel.setText("Server is not running. Please start the server first !")
+                    return
                 except OSError:
-                    print("Server is not running. Please start the server first.")
-            self.client.server_host = widgets.serverInput.text()
-            self.client.local_host = widgets.ipInput.text()
-            self.client.local_port = int(widgets.peerportInput.text())
-            self.client.client_sender.register(widgets.usernameInput.text(),widgets.passwordInput.text(),self.client.local_host,self.client.local_port)
-            widgets.registerBtn.setEnabled(False)
-            widgets.loginBtn.setEnabled(False)
-            sleep(1)
-            if not self.client.client_listener.get_notifications()[-1][1] == self.statusCode.REGISTER_SUCCESS():
-                widgets.loginLabel.setText("Registration Failed")
-                widgets.registerBtn.setEnabled(True)
-                widgets.loginBtn.setEnabled(True)
-            else:
-                widgets.loginLabel.setText("Registration Successful")
-                widgets.registerBtn.setEnabled(True)
-                widgets.loginBtn.setEnabled(True)
-        if btnName == "publishBtn":
-            response = QFileDialog.getOpenFileName(
+                    widgets.loginLabel.setText("Server is not running. Please start the server first !")
+                    return
+            try:
+                self.client.server_host = widgets.serverInput.text()
+                self.client.local_host = widgets.ipInput.text()
+                self.client.local_port = int(widgets.peerportInput.text())
+                self.client.client_sender.register(widgets.usernameInput.text(),widgets.passwordInput.text(),self.client.local_host,self.client.local_port)
+                widgets.registerBtn.setEnabled(False)
+                widgets.loginBtn.setEnabled(False)
+                sleep(1)
+                if not self.client.client_listener.get_notifications()[-1][1] == self.statusCode.REGISTER_SUCCESS():
+                    widgets.loginLabel.setText("Registration Failed")
+                    widgets.registerBtn.setEnabled(True)
+                    widgets.loginBtn.setEnabled(True)
+                else:
+                    widgets.loginLabel.setText("Registration Successful")
+                    widgets.registerBtn.setEnabled(True)
+                    widgets.loginBtn.setEnabled(True)
+            except ConnectionRefusedError:
+                widgets.loginLabel.setText("Server is not running. Please start the server first !")
+                return
+            except OSError:
+                widgets.loginLabel.setText("Server is not running. Please start the server first !")
+                return
+        if btnName == "openDiaglogBtn":
+            self.selected_file = QFileDialog.getOpenFileName(
                 parent=self,
                 caption='Select a file',
                 dir=os.getcwd(),
                 filter='All Files (*.*)'
             )
-            if response[0] != '':
-                file_path = response[0]
-                file_name = file_path.split('/')[-1]
-                file_size = os.path.getsize(file_path)
-                file_date = datetime.now().strftime("%H:%M:%S-%d/%m/%Y")
-                file_description = widgets.descriptionInput.text().replace(" ", "_")
-                new_file = File(file_name, file_size, file_date, file_description)
-                self.client.local_respiratory.add_file(new_file)
-                self.client.client_sender.publish(new_file)
-                new_file = File(file_name, file_size, file_date, file_description.replace("_", " "))
-                self.addFileToRepo(new_file)
+            widgets.publishError_row.setMaximumSize(0, 0)
+            if self.selected_file[0] != "":
+                widgets.fileNameInput.setText(os.path.basename(self.selected_file[0]))
+            else:
+                widgets.publishErrorLabel.setText("Please select a file to publish")
+                widgets.publishError_row.setMaximumSize(16777215, 16777215)
+        if btnName == "publishBtn":
+            if self.selected_file != None:
+                file_path = self.selected_file[0]
+                destination_path = os.path.join(self.client.local_respiratory_dir, os.path.basename(file_path))
+                if not os.path.exists(destination_path):
+                    local_file_name = os.path.basename(file_path)
+                    file_name = widgets.fileNameInput.text()
+                    file_description = widgets.descriptionInput.text()
+                    self.client.publish(local_file_name, file_name,file_path, file_description)
+                    widgets.publishError_row.setMaximumSize(0, 0)
+                    self.loadingRepo()
+                else:
+                    widgets.publishErrorLabel.setText("File already exists in local repository")
+                    widgets.publishError_row.setMaximumSize(16777215, 16777215)
+                self.selected_file = None
+                widgets.fileNameInput.setText("")
+                widgets.descriptionInput.setText("")
+            else:
+                widgets.publishErrorLabel.setText("Please select a file to publish")
+                widgets.publishError_row.setMaximumSize(16777215, 16777215)
+        if btnName == "searchBtn":
+            widgets.fetchTable.setRowCount(0)
+            file_name = widgets.searchFileInput.text()
+            if self.client.local_respiratory.get_file(file_name) != None:
+                widgets.fetchErrorLabel_2.setText("File is in local repository")
+                widgets.fetchError_row.setMaximumSize(16777215, 16777215)
+            elif file_name == "":
+                widgets.fetchErrorLabel_2.setText("Please enter a file name")
+                widgets.fetchError_row.setMaximumSize(16777215, 16777215)
+            else:
+                hosts = self.client.fetch(file_name)
+                if len(hosts) == 0:
+                    widgets.fetchErrorLabel_2.setText("File not found")
+                    widgets.fetchError_row.setMaximumSize(16777215, 16777215)
+                    return
+                for host in hosts:
+                    widgets.fetchTable.insertRow(widgets.fetchTable.rowCount())
+                    widgets.fetchTable.setItem(widgets.fetchTable.rowCount()-1, 0, QTableWidgetItem(host[0]))
+                    widgets.fetchTable.setItem(widgets.fetchTable.rowCount()-1, 1, QTableWidgetItem(host[1]))
+                    widgets.fetchTable.setItem(widgets.fetchTable.rowCount()-1, 2, QTableWidgetItem(str(host[2])))
+                    if host[3] == 1:
+                        widgets.fetchTable.setItem(widgets.fetchTable.rowCount()-1, 3, QTableWidgetItem("Online"))
+                    else:
+                        widgets.fetchTable.setItem(widgets.fetchTable.rowCount()-1, 3, QTableWidgetItem("Offline"))
+                widgets.fetchErrorLabel_2.setText("")
+                widgets.fetchError_row.setMaximumSize(0, 0)
+        if btnName == "fetchBtn":
+            selected_host = widgets.fetchTable.selectedItems()            
+            selected_host_info = (selected_host[0].text(),selected_host[1].text(),selected_host[2].text())
+            file_name = widgets.searchFileInput.text()
+            if selected_host_info[2] == "Offline":
+                widgets.fetchErrorLabel_2.setText("Host is offline")
+                widgets.fetchError_row.setMaximumSize(16777215, 16777215)
+            else:
+                self.client.download(selected_host_info,file_name)
+                widgets.fetchErrorLabel_2.setText("Download Successful")
+
             
-
-
 
 
     # RESIZE EVENTS

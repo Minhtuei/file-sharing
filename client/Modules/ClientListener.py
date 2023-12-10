@@ -22,7 +22,6 @@ class Listener:
     def stop(self):
         # Add any cleanup or additional shutdown logic here
         self.running = False
-        sleep(1)
         self.client.close()
     def receive_message(self, conn):
         # Receive the packed length as a 4-byte integer
@@ -102,9 +101,10 @@ class ClientListener(Listener):
                         self.notifications.append((datetime.now().strftime("%H:%M:%S-%d/%m/%Y"), response_code ,"Bad request."))
                     elif response_code == self.statusCode.STOP():
                         self.success = False
-                        self.stop()
+                        print("Server has stopped. Please use the stop command to exit.")
         except ConnectionAbortedError:
             print("Connection to the server was aborted.")
+            self.stop()
         except OSError:
             print("Connection to the server was forcibly closed.")
             self.stop()
@@ -130,7 +130,7 @@ class PeerListener(Listener):
                 if not self.running:
                     break
                 else:
-                    print(f"Exception in peer listener: {e}")
+                    print(f"Error in Peer Server:  {e}")
     def listen(self, conn, addr):
         try:
             while self.running:
@@ -154,11 +154,11 @@ class PeerListener(Listener):
                         conn.close()
 
         except ConnectionAbortedError:
-            print("Connection to the server was aborted.")
+            print("Error in Peer Server: Connection to the server was aborted.")
         except OSError:
-            print("Connection to the server was forcibly closed.")
+            print("Error in Peer Server: Connection to the server was forcibly closed.")
         except Exception as e:
-            print(f"Exception in client listener: {e}")
+            print(f"Error in Peer Server: Exception in client listener: {e}")
         finally:
             self.stop()
         

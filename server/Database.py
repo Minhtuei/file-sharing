@@ -49,7 +49,7 @@ class Database:
         self.cursor.execute("SELECT * FROM file WHERE owner_id=?", (owner_id,))
         return self.cursor.fetchall()
     def fetch(self, file_name):
-        self.cursor.execute("SELECT hostname,ipAddress FROM users WHERE id IN (SELECT owner_id FROM file WHERE file_name=?)", (file_name,))
+        self.cursor.execute("SELECT hostname,ipAddress,peerPort,isOnline FROM users WHERE id IN (SELECT owner_id FROM file WHERE file_name=?)", (file_name,))
         return self.cursor.fetchall()
     def close(self):
         self.cursor.execute("UPDATE users SET isOnline=0")

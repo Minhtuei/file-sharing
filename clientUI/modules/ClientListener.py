@@ -44,9 +44,9 @@ class Listener:
 class ClientListener(Listener):
     def __init__(self, client):
         super().__init__(client)
-        self.fetch_peer = None
+        self.fetch_peers = None
     def get_fetch_peers(self):
-        return self.fetch_peer
+        return self.fetch_peers
     def start(self):
         self.thread = Thread(target=self.listen)
         self.thread.start()
@@ -80,14 +80,10 @@ class ClientListener(Listener):
                     elif response_code == self.statusCode.FETCH_SUCCESS():
                         self.local_respiratory = Database()
                         peers = self.receive_message(self.client)
-                        peers = ast.literal_eval(peers)
-                        print("List of peers that have the file:")
-                        for peer in peers:
-                            print(f"Hostname: {peer[0]}, IP Address: {peer[1]}")
-                        selected_peer = int(input("Enter the index of the peer you want to download from: "))
-                        self.fetch_peer = peers[selected_peer]
+                        self.fetch_peers = ast.literal_eval(peers)
                         self.notifications.append((datetime.now().strftime("%H:%M:%S-%d/%m/%Y"), response_code ,"You have just received the list of peers that have the file."))
                     elif response_code == self.statusCode.FILE_NOT_FOUND():
+                        self.fetch_peers = []
                         self.notifications.append((datetime.now().strftime("%H:%M:%S-%d/%m/%Y"), response_code ,"File not found."))
                     elif response_code == self.statusCode.BAD_REQUEST():
                         self.notifications.append((datetime.now().strftime("%H:%M:%S-%d/%m/%Y"), response_code ,"Bad request."))

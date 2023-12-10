@@ -5,6 +5,7 @@ class StatusCode():
         self.UPLOAD_SUCCESS_CODE = 202
         self.PING_CODE = 203
         self.FETCH_SUCCESS_CODE = 204
+        self.DOWNLOAD_SUCCESS_CODE = 205
         self.BAD_REQUEST_CODE = 400
         self.USER_NOT_FOUND_CODE = 401
         self.WRONG_PASSWORD_CODE = 402
@@ -28,6 +29,8 @@ class StatusCode():
         return str(self.UPLOAD_SUCCESS_CODE)
     def FETCH_SUCCESS(self):
         return str(self.FETCH_SUCCESS_CODE)
+    def DOWNLOAD_SUCCESS(self):
+        return str(self.DOWNLOAD_SUCCESS_CODE)
     def PING(self):
         return str(self.PING_CODE)
     def FILE_NOT_FOUND(self):
