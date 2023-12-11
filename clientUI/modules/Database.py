@@ -29,3 +29,6 @@ class Database():
     def get_file(self, file_name):
         self.cursor.execute("SELECT * FROM repo WHERE file_name=?", (file_name,))
         return self.cursor.fetchone()
+    def count_duplicate_files(self,file_name):
+        self.cursor.execute("SELECT COUNT(*) FROM repo WHERE file_name=?", (file_name,))
+        return self.cursor.fetchone()[0]

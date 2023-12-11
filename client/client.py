@@ -44,13 +44,8 @@ class Client:
             self.listen_Server = Thread(target=self.client_listener.listen)
             self.listen_Server.start()
             print(f"Client connected to {self.server_host}:{self.server_port}")
-            print(f"Peer Server listening on {self.local_host}:{self.local_port}")
-            self.local_server.bind((self.local_host, self.local_port))
-            self.listen_Peer = Thread(target=self.peer_listener.start)
-            self.listen_Peer.start()
             self.create_repository()
             self.create_file_system()
-            self.peer_listener.set_local_repository(self.local_respiratory_dir)
             self.login()
         except ConnectionRefusedError:
             print ("Server is not running. Please start the server first.")
@@ -72,12 +67,35 @@ class Client:
         while not self.client_listener.isSuccessful():
             msg = input("Enter 'login' or 'register' to continue: ")
             if msg == "login":
-                self.client_sender.login(self.local_host, self.local_port)
+                username = input("Enter your username: ")
+                password = input("Enter your password: ")
+                ipAddr = input("Enter your ip address (auto for automatic): ")
+                peerPort = input("Enter your peer port (auto for automatic): ")
+                if ipAddr == "auto":
+                    ipAddr = self.local_host
+                if peerPort == "auto":
+                    peerPort = self.local_port
+                self.client_sender.login(username, password, ipAddr, peerPort)
             elif msg == "register":
-                self.client_sender.register(self.local_host, self.local_port)
+                username = input("Enter your username: ")
+                password = input("Enter your password: ")
+                ipAddr = input("Enter your ip address (auto for automatic): ")
+                peerPort = input("Enter your peer port (auto for automatic): ")
+                if ipAddr == "auto":
+                    ipAddr = self.local_host
+                if peerPort == "auto":
+                    peerPort = self.local_port
+                self.client_sender.register(username, password, ipAddr, peerPort)
             else:
                 print("Invalid command. Please try again.")
             sleep(1)
+    
+        self.local_server.bind((self.local_host, self.local_port))
+        self.listen_Peer = Thread(target=self.peer_listener.start)
+        self.listen_Peer.start()
+        self.peer_listener.set_local_repository(self.local_respiratory_dir)
+        print(f"Peer Server listening on {self.local_host}:{self.local_port}")
+
     def create_repository(self):
         self.app_folder = os.path.dirname(os.path.abspath(__file__))
         self.local_respiratory_dir = os.path.join(
@@ -116,12 +134,12 @@ class Client:
             else:
                 # Create the full destination path
                 destination_path = os.path.join(self.local_respiratory_dir, file_name)
+                print(destination_path)
                 if os.path.exists(destination_path):
                     print("File already exists in local repository.")
                     return
                 # Move the file to the destination directory
                 shutil.move(file_path, destination_path)
-
                 # Update local_respiratory
                 file_size = os.path.getsize(destination_path)
                 file_date = datetime.now().strftime("%H:%M:%S-%d/%m/%Y")
@@ -147,6 +165,11 @@ class Client:
             packed_length = struct.pack("!I", length)
             self.peer_client.sendall(packed_length)
             self.peer_client.sendall(mgs.encode())
+            sleep(1)
+            duplicate = self.local_respiratory.count_duplicate_files(file_name)
+            if duplicate_files > 0:
+                file_name.split(".")
+                file_name = f"{file_name[0]}({duplicate_files}).{file_name[1]}"
             with open(os.path.join(self.local_respiratory_dir, file_name), "wb") as file:
                 while True:
                     data = self.peer_client.recv(4096)

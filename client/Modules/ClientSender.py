@@ -18,29 +18,12 @@ class ClientSender:
     def stop(self):
         # Add any cleanup or additional shutdown logic here
         self.send_message("exit")
-    def login(self, ipAddr, peerPort):
-        username = input("Enter your username: ")
-        password = input("Enter your password: ")
-        ipAddr_ = input("Enter your ip address (auto for automatic): ")
-        peerPort_ = input("Enter your peer port (auto for automatic): ")
-        if ipAddr == "auto":
-            ipAddr_ = ipAddr 
-        if peerPort == "auto":
-            peerPort = peerPort_
+    def login(self, username, password, ipAddr, peerPort):
         msg = f"login {username} {password} {ipAddr} {peerPort}"
         self.send_message(msg)
 
-    def register(self, ipAddr, peerPort):
-        username = input("Enter your username: ")
-        password = input("Enter your password: ")
-        ipAddr_ = input("Enter your ip address (auto for automatic): ")
-        peerPort_ = input("Enter your peer port (auto for automatic): ")
-        if ipAddr == "auto":
-            ipAddr_ = ipAddr 
-        if peerPort == "auto":
-            peerPort = peerPort_
+    def register(self, username, password, ipAddr, peerPort):
         msg = f"register {username} {password} {ipAddr} {peerPort}"
-        print(self.client)
         self.send_message(msg)
 
     def publish(self, new_file):
