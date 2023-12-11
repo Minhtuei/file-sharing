@@ -128,7 +128,6 @@ class Client:
                         break
                     file.write(data)
             print("File downloaded successfully.") 
-            self.peer_client.close()
             file_size = os.path.getsize(os.path.join(self.local_respiratory_dir, file_name))
             file_date = datetime.now().strftime("%H:%M:%S-%d/%m/%Y")
             file_description = f"Downloaded from {selected_host[0]}".replace(" ", "_")

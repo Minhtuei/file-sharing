@@ -19,7 +19,6 @@ class Client:
         self.local_host = socket.gethostbyname_ex(socket.gethostname())[2][-1]
         self.local_port = 5001
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        print(self.client)
         self.local_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.peer_listener = PeerListener(self.local_server)
         self.client_listener = ClientListener(self.client)
@@ -142,7 +141,7 @@ class Client:
             if selected_peer == 0:
                 return
             self.peer_client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.peer_client.connect((selected_peer[1], self.local_port))
+            self.peer_client.connect((selected_peer[1], int(selected_peer[2])))
             mgs = f"download {file_name}"
             length = len(mgs)
             packed_length = struct.pack("!I", length)
@@ -157,7 +156,6 @@ class Client:
                         break
                     file.write(data)
             print("File downloaded successfully.") 
-            self.peer_client.close()
             file_size = os.path.getsize(os.path.join(self.local_respiratory_dir, file_name))
             file_date = datetime.now().strftime("%H:%M:%S-%d/%m/%Y")
             file_description = f"Downloaded from {selected_peer[0]}".replace(" ", "_")

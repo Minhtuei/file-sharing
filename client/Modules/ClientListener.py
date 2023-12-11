@@ -89,8 +89,14 @@ class ClientListener(Listener):
                         peers = ast.literal_eval(peers)
                         print("List of peers that have the file:")
                         for peer in peers:
-                            print(f"Hostname: {peer[0]}, IP Address: {peer[1]}")
-                        selected_peer = int(input("Enter the index of the peer you want to download from: "))
+                            print(f"Hostname: {peer[0]}, IP Address: {peer[1]}, Port: {peer[2]}, Online: {peer[3]}")
+                        selected_peer = None
+                        while self.fetch_peer == None:
+                            selected_peer = int(input("Enter the index of the peer you want to download from: "))
+                            if (peers[selected_peer][3] == 0):
+                                print("Peer is offline.")
+                            elif (peers[selected_peer][3] == 1):
+                                break
                         self.fetch_peer = peers[selected_peer]
                         self.notifications.append((datetime.now().strftime("%H:%M:%S-%d/%m/%Y"), response_code ,"You have just received the list of peers that have the file."))
                     elif response_code == self.statusCode.FILE_NOT_FOUND():
@@ -118,6 +124,7 @@ class PeerListener(Listener):
     def __init__(self, client):
         super().__init__(client)
         self.local_repository_dir = None
+        self.subRunning = True
     def set_local_repository(self, local_repository_dir):
         self.local_repository_dir = local_repository_dir
     def start(self):
@@ -125,7 +132,7 @@ class PeerListener(Listener):
         while self.running:
             try:
                 conn, addr = self.client.accept()
-                self.thread = Thread(target=self.listen, args=(conn, addr))
+                self.thread = Thread(target=self.listen, args=(conn, addr), daemon=True)
                 self.thread.start()
             except Exception as e:
                 if not self.running:
@@ -134,7 +141,7 @@ class PeerListener(Listener):
                     print(f"Error in Peer Server:  {e}")
     def listen(self, conn, addr):
         try:
-            while self.running:
+            while self.subRunning:
                 data = self.receive_message(conn)
                 if data:
                     command = data.split(" ")[0]
@@ -157,9 +164,7 @@ class PeerListener(Listener):
         except ConnectionAbortedError:
             print("Error in Peer Server: Connection to the server was aborted.")
         except OSError:
-            print("Error in Peer Server: Connection to the server was forcibly closed.")
-        except Exception as e:
-            print(f"Error in Peer Server: Exception in client listener: {e}")
-        finally:
-            self.stop()
+            print("Peer Connection for download was forcibly closed.")
+
+        
         

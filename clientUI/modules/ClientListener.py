@@ -141,10 +141,6 @@ class PeerListener(Listener):
                         conn.close()
 
         except ConnectionAbortedError:
-            print("Connection to the server was aborted.")
+            print("Error in Peer Server: Connection to the server was aborted.")
         except OSError:
-            print("Connection to the server was forcibly closed.")
-        except Exception as e:
-            print(f"Exception in client listener: {e}")
-        finally:
-            self.stop()
+            print("Peer Connection for download was forcibly closed.")

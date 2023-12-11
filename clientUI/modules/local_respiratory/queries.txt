@@ -1,0 +1,19 @@
+/* 1b 
+EM_DE=EMPLOYEE ⨝ EMPLOYEE.Dno = DEPARTMENT.Dnumber DEPARTMENT
+π Fname,Minit,Lname (σ Sex='F'∧ Dname='Research'(EM_DE))
+*/
+/* 1c
+EM_DE=EMPLOYEE ⨝ EMPLOYEE.Dno = DEPARTMENT.Dnumber DEPARTMENT
+Temp = π Ssn,Fname,Minit,Lname (σ Sex='M'∧ Dname='Research'(EM_DE))
+Temp2 = Temp ⨝ EMPLOYEE.Ssn = WORKS_ON.Essn WORKS_ON
+π Fname,Minit,Lname (σ WORKS_ON.Hours>10 Temp2)
+*/
+/* 1d
+pi Fname,Minit,Lname(σ DEPARTMENT.Dname='Research' (EMPLOYEE ⨝ EMPLOYEE.Ssn = DEPARTMENT.Mgr_ssn DEPARTMENT))
+*/
+/* 1e
+Manager = π Mgr_ssn(σ DEPARTMENT.Dname='Research' (EMPLOYEE ⨝ EMPLOYEE.Ssn = DEPARTMENT.Mgr_ssn DEPARTMENT))
+ pi Fname,Minit,Lname (EMPLOYEE ⨝  EMPLOYEE.Super_ssn = DEPARTMENT.Mgr_ssn Manager)
+ */ 
+temp = γ WORKS_ON.Pno;sum(WORKS_ON.Hours)->total_hours(WORKS_ON)
+pi Pname, total_hours(temp ⨝ WORKS_ON.Pno	= PROJECT.Pnumber PROJECT)
