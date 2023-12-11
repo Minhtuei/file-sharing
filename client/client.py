@@ -19,7 +19,7 @@ class Client:
         self.local_host = socket.gethostbyname_ex(socket.gethostname())[2][-1]
         self.local_port = 5001
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
+        print(self.client)
         self.local_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.peer_listener = PeerListener(self.local_server)
         self.client_listener = ClientListener(self.client)
@@ -41,6 +41,7 @@ class Client:
             self.server_host = server_host_
         try:
             self.client.connect((self.server_host, self.server_port))
+            print(self.client)
             self.listen_Server = Thread(target=self.client_listener.listen)
             self.listen_Server.start()
             print(f"Client connected to {self.server_host}:{self.server_port}")
@@ -138,8 +139,10 @@ class Client:
             while self.client_listener.get_fetch_peers() == None:
                 sleep(1)
             selected_peer = self.client_listener.get_fetch_peers()
+            if selected_peer == 0:
+                return
             self.peer_client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.peer_client.connect((selected_peer[1], self.local_port+1))
+            self.peer_client.connect((selected_peer[1], self.local_port))
             mgs = f"download {file_name}"
             length = len(mgs)
             packed_length = struct.pack("!I", length)
@@ -158,7 +161,7 @@ class Client:
             file_size = os.path.getsize(os.path.join(self.local_respiratory_dir, file_name))
             file_date = datetime.now().strftime("%H:%M:%S-%d/%m/%Y")
             file_description = f"Downloaded from {selected_peer[0]}".replace(" ", "_")
-            new_file = fd.File(file_name, file_size,file_date, file_description)
+            new_file = File(file_name, file_size,file_date, file_description)
             self.local_respiratory.add_file(new_file)
             self.client_sender.publish(new_file) 
         except OSError as e:

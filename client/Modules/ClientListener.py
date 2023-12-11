@@ -94,6 +94,7 @@ class ClientListener(Listener):
                         self.fetch_peer = peers[selected_peer]
                         self.notifications.append((datetime.now().strftime("%H:%M:%S-%d/%m/%Y"), response_code ,"You have just received the list of peers that have the file."))
                     elif response_code == self.statusCode.FILE_NOT_FOUND():
+                        self.fetch_peer = 0
                         print("File not found.")
                         self.notifications.append((datetime.now().strftime("%H:%M:%S-%d/%m/%Y"), response_code ,"File not found."))
                     elif response_code == self.statusCode.BAD_REQUEST():

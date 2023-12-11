@@ -166,6 +166,9 @@ class MainWindow(QMainWindow):
             UIFunctions.resetStyle(self, btnName)
             btn.setStyleSheet(UIFunctions.selectMenu(btn.styleSheet()))
         if btnName == "loginBtn":
+            self.client.server_host = widgets.serverInput.text()
+            self.client.local_host = widgets.ipInput.text()
+            self.client.local_port = int(widgets.peerportInput.text())
             if not self.isStart:
                 try:
                     self.client_thread.start()
@@ -176,10 +179,9 @@ class MainWindow(QMainWindow):
                 except OSError:
                     widgets.loginLabel.setText("Server is not running. Please start the server first !")
                     return
+            sleep(1)
             try:
-                self.client.server_host = widgets.serverInput.text()
-                self.client.local_host = widgets.ipInput.text()
-                self.client.local_port = int(widgets.peerportInput.text())
+                
                 self.client.client_sender.login(widgets.usernameInput.text(),widgets.passwordInput.text(),self.client.local_host,self.client.local_port)
                 widgets.registerBtn.setEnabled(False)
                 widgets.loginBtn.setEnabled(False)
@@ -202,6 +204,9 @@ class MainWindow(QMainWindow):
                 widgets.loginLabel.setText("Server is not running. Please start the server first !")
                 return
         if btnName == "registerBtn":
+            self.client.server_host = widgets.serverInput.text()
+            self.client.local_host = widgets.ipInput.text()
+            self.client.local_port = int(widgets.peerportInput.text())
             if not self.isStart:
                 try:
                     self.client_thread.start()
@@ -212,10 +217,9 @@ class MainWindow(QMainWindow):
                 except OSError:
                     widgets.loginLabel.setText("Server is not running. Please start the server first !")
                     return
+            sleep(1)
             try:
-                self.client.server_host = widgets.serverInput.text()
-                self.client.local_host = widgets.ipInput.text()
-                self.client.local_port = int(widgets.peerportInput.text())
+                
                 self.client.client_sender.register(widgets.usernameInput.text(),widgets.passwordInput.text(),self.client.local_host,self.client.local_port)
                 widgets.registerBtn.setEnabled(False)
                 widgets.loginBtn.setEnabled(False)
@@ -278,7 +282,7 @@ class MainWindow(QMainWindow):
                 widgets.fetchError_row.setMaximumSize(16777215, 16777215)
             else:
                 hosts = self.client.fetch(file_name)
-                if len(hosts) == 0:
+                if hosts == 0:
                     widgets.fetchErrorLabel_2.setText("File not found")
                     widgets.fetchError_row.setMaximumSize(16777215, 16777215)
                     return
@@ -303,6 +307,8 @@ class MainWindow(QMainWindow):
             else:
                 self.client.download(selected_host_info,file_name)
                 widgets.fetchErrorLabel_2.setText("Download Successful")
+                widgets.fetchError_row.setMaximumSize(16777215, 16777215)
+                self.loadingRepo()
 
             
 

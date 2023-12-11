@@ -40,6 +40,7 @@ class ClientSender:
         if peerPort == "auto":
             peerPort = peerPort_
         msg = f"register {username} {password} {ipAddr} {peerPort}"
+        print(self.client)
         self.send_message(msg)
 
     def publish(self, new_file):
