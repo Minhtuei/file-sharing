@@ -54,6 +54,7 @@ class ClientListener(Listener):
             while self.running:
                 response_code = self.client.recv(3).decode('utf-8')
                 if response_code:  # Connection closed by the server
+                    print(f"Received response code: {response_code}")
                     if response_code == self.statusCode.LOGIN_SUCCESS():
                         print("Login successful.")
                         self.success = True
@@ -67,6 +68,9 @@ class ClientListener(Listener):
                     elif response_code == self.statusCode.WRONG_PASSWORD():
                         print("Wrong password.")
                         self.notifications.append((datetime.now().strftime("%H:%M:%S-%d/%m/%Y"), response_code ,"Wrong password."))
+                    elif response_code == self.statusCode.USER_ALREADY_ONLINE():
+                        print("User already online.")
+                        self.notifications.append((datetime.now().strftime("%H:%M:%S-%d/%m/%Y"), response_code ,"User already online."))
                     elif response_code == self.statusCode.USER_ALREADY_EXISTS():
                         print("User already exists.")
                         self.notifications.append((datetime.now().strftime("%H:%M:%S-%d/%m/%Y"), response_code ,"User already exists."))
@@ -92,12 +96,20 @@ class ClientListener(Listener):
                             print(f"Hostname: {peer[0]}, IP Address: {peer[1]}, Port: {peer[2]}, Online: {peer[3]}")
                         selected_peer = None
                         while self.fetch_peer == None:
-                            selected_peer = int(input("Enter the index of the peer you want to download from: "))
+                            selected_peer = int(input("Enter the index of the peer you want to download from (-1 to quit): "))
+                            if (selected_peer < -1 or selected_peer >= len(peers) or selected_peer == None):
+                                print("Invalid index.")
+                                continue
+                            if (selected_peer == -1):
+                                break
                             if (peers[selected_peer][3] == 0):
                                 print("Peer is offline.")
                             elif (peers[selected_peer][3] == 1):
                                 break
-                        self.fetch_peer = peers[selected_peer]
+                        if (selected_peer == -1):
+                            self.fetch_peer = 0
+                        else:
+                            self.fetch_peer = peers[selected_peer]
                         self.notifications.append((datetime.now().strftime("%H:%M:%S-%d/%m/%Y"), response_code ,"You have just received the list of peers that have the file."))
                     elif response_code == self.statusCode.FILE_NOT_FOUND():
                         self.fetch_peer = 0
@@ -158,7 +170,7 @@ class PeerListener(Listener):
                                 conn.sendall(data)
                         conn.sendall(b"EOF")
                         print("File sent.")
-                        self.notifications.append((datetime.now().strftime("%H:%M:%S-%d/%m/%Y"), self.statusCode.DOWNLOAD_SUCCESS() ,"File sent."))
+                        self.notifications.append((datetime.now().strftime("%H:%M:%S-%d/%m/%Y"), self.statusCode.DOWNLOAD_SUCCESS() ,f'File "{file_name}" sent to {addr[0]}:{addr[1]}.'))
                         conn.close()
 
         except ConnectionAbortedError:

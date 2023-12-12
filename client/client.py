@@ -71,21 +71,53 @@ class Client:
                 password = input("Enter your password: ")
                 ipAddr = input("Enter your ip address (auto for automatic): ")
                 peerPort = input("Enter your peer port (auto for automatic): ")
+                if peerPort != "auto":
+                    try:
+                        if not int(peerPort) in range(0, 65535):
+                            print("Invalid port number. Please try again.")
+                        continue
+                    except ValueError:
+                        print("Invalid input. Port number must be an integer. Please try again.")
+                        continue
+                if len(username) == 0 or len(password) == 0:
+                    print("Invalid username or password. Please try again.")
+                    continue
+                if len(ipAddr.split(".")) != 4 and ipAddr != "auto":
+                    print("Invalid ip address. Please try again.")
+                    continue
                 if ipAddr == "auto":
                     ipAddr = self.local_host
                 if peerPort == "auto":
                     peerPort = self.local_port
                 self.client_sender.login(username, password, ipAddr, peerPort)
+                self.local_host = ipAddr
+                self.local_port = peerPort
             elif msg == "register":
                 username = input("Enter your username: ")
                 password = input("Enter your password: ")
                 ipAddr = input("Enter your ip address (auto for automatic): ")
                 peerPort = input("Enter your peer port (auto for automatic): ")
+                if peerPort != "auto":
+                    try:
+                        if not int(peerPort) in range(0, 65535):
+                            print("Invalid port number. Please try again.")
+                        continue
+                    except ValueError:
+                        print("Invalid input. Port number must be an integer. Please try again.")
+                        continue
+                if len(username) == 0 or len(password) == 0:
+                    print("Invalid username or password. Please try again.")
+                    continue
+                if len(ipAddr.split(".")) != 4 and ipAddr != "auto":
+                    print("Invalid ip address. Please try again.")
+                    continue
                 if ipAddr == "auto":
                     ipAddr = self.local_host
                 if peerPort == "auto":
                     peerPort = self.local_port
                 self.client_sender.register(username, password, ipAddr, peerPort)
+                self.local_host = ipAddr
+                self.local_port = peerPort
             else:
                 print("Invalid command. Please try again.")
             sleep(1)
@@ -134,7 +166,6 @@ class Client:
             else:
                 # Create the full destination path
                 destination_path = os.path.join(self.local_respiratory_dir, file_name)
-                print(destination_path)
                 if os.path.exists(destination_path):
                     print("File already exists in local repository.")
                     return
@@ -147,17 +178,22 @@ class Client:
                 new_file = File(file_name, file_size,file_date, file_description)
                 self.local_respiratory.add_file(new_file)
                 self.client_sender.publish(new_file)
+                sleep(1)
+                self.client_listener.notifications[-1] = (datetime.now().strftime("%H:%M:%S-%d/%m/%Y"), self.client_listener.statusCode.UPLOAD_SUCCESS() ,f'File "{file_name}" published.')
         except OSError as e:
             print("The server is not running. Please try again later.")
             self.stop()
     def fetch(self, file_name):
         try:
             self.client_sender.fetch(file_name)
+            self.client_listener.notifications.append((datetime.now().strftime("%H:%M:%S-%d/%m/%Y"), None ,f'Fetching file "{file_name}" from the server.'))
             while self.client_listener.get_fetch_peers() == None:
                 sleep(1)
             selected_peer = self.client_listener.get_fetch_peers()
             if selected_peer == 0:
                 return
+            if selected_peer[1] == self.local_host and selected_peer[2] == self.local_port:
+                print("You already have the file. So we will duplicate it for you.")
             self.peer_client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.peer_client.connect((selected_peer[1], int(selected_peer[2])))
             mgs = f"download {file_name}"
@@ -166,9 +202,9 @@ class Client:
             self.peer_client.sendall(packed_length)
             self.peer_client.sendall(mgs.encode())
             sleep(1)
-            duplicate = self.local_respiratory.count_duplicate_files(file_name)
+            duplicate_files = self.local_respiratory.count_duplicate_files(file_name)
             if duplicate_files > 0:
-                file_name.split(".")
+                file_name = file_name.split(".")
                 file_name = f"{file_name[0]}({duplicate_files}).{file_name[1]}"
             with open(os.path.join(self.local_respiratory_dir, file_name), "wb") as file:
                 while True:
@@ -179,6 +215,7 @@ class Client:
                         break
                     file.write(data)
             print("File downloaded successfully.") 
+            self.client_listener.notifications.append((datetime.now().strftime("%H:%M:%S-%d/%m/%Y"), self.client_listener.statusCode.DOWNLOAD_SUCCESS() ,f'File "{file_name}" downloaded from {selected_peer[0]}/{selected_peer[1]}.'))
             file_size = os.path.getsize(os.path.join(self.local_respiratory_dir, file_name))
             file_date = datetime.now().strftime("%H:%M:%S-%d/%m/%Y")
             file_description = f"Downloaded from {selected_peer[0]}".replace(" ", "_")

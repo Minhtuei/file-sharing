@@ -8,9 +8,10 @@ class StatusCode():
         self.BAD_REQUEST_CODE = 400
         self.USER_NOT_FOUND_CODE = 401
         self.WRONG_PASSWORD_CODE = 402
-        self.USER_ALREADY_EXISTS_CODE = 403
-        self.STOP_CODE = 404
-        self.FILE_NOT_FOUND_CODE = 405
+        self.USER_ALREADY_ONLINE_CODE = 403
+        self.USER_ALREADY_EXISTS_CODE = 404
+        self.STOP_CODE = 405
+        self.FILE_NOT_FOUND_CODE = 406
 
     def LOGIN_SUCCESS(self):
         return str(self.LOGIN_SUCCESS_CODE)
@@ -22,6 +23,8 @@ class StatusCode():
         return str(self.USER_NOT_FOUND_CODE)
     def WRONG_PASSWORD(self):
         return str(self.WRONG_PASSWORD_CODE)
+    def USER_ALREADY_ONLINE(self):
+        return str(self.USER_ALREADY_ONLINE_CODE)
     def USER_ALREADY_EXISTS(self):
         return str(self.USER_ALREADY_EXISTS_CODE)
     def UPLOAD_SUCCESS(self):

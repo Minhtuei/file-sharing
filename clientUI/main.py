@@ -24,6 +24,8 @@ from modules import *
 from widgets import *
 from threading import Thread
 from PySide6.QtWidgets import QFileDialog
+from PySide6.QtCore import QUrl
+from PySide6.QtGui import QDesktopServices
 os.environ["QT_FONT_DPI"] = "96" # FIX Problem for High DPI and Scale above 100%
 
 # SET AS GLOBAL WIDGETS
@@ -40,17 +42,7 @@ class MainWindow(QMainWindow):
         self.ui.setupUi(self)
         global widgets
         widgets = self.ui
-        self.client = Client()
-        self.client_thread = Thread(target=self.client.start, daemon=True )
-        self.isStart = False
-        self.statusCode = StatusCode()
-        self.selected_file = None
-        widgets.serverInput.setText(self.client.server_host)
-        widgets.ipInput.setText(self.client.local_host)
-        widgets.peerportInput.setText(str(self.client.local_port))
-        widgets.btn_repo.setEnabled(False)
-        widgets.btn_fetch.setEnabled(False)
-        widgets.btn_notification.setEnabled(False)
+        self.setUp()
         # USE CUSTOM TITLE BAR | USE AS "False" FOR MAC OR LINUX
         # ///////////////////////////////////////////////////////////////
         Settings.ENABLE_CUSTOM_TITLE_BAR = True
@@ -88,7 +80,8 @@ class MainWindow(QMainWindow):
         widgets.btn_repo.clicked.connect(self.buttonClick)
         widgets.btn_fetch.clicked.connect(self.buttonClick)
         widgets.btn_notification.clicked.connect(self.buttonClick)
-
+        widgets.btn_git.clicked.connect(self.buttonClick)
+        widgets.btn_logout.clicked.connect(self.buttonClick)
         # EXTRA LEFT BOX
         def openCloseLeftBox():
             UIFunctions.toggleLeftBox(self, True)
@@ -121,7 +114,18 @@ class MainWindow(QMainWindow):
         # ///////////////////////////////////////////////////////////////
         widgets.stackedWidget.setCurrentWidget(widgets.homePage)
         widgets.btn_connect.setStyleSheet(UIFunctions.selectMenu(widgets.btn_connect.styleSheet()))
-
+    def setUp(self):
+        self.client = Client()
+        self.client_thread = Thread(target=self.client.start, daemon=True )
+        self.isStart = False
+        self.statusCode = StatusCode()
+        self.selected_file = None
+        widgets.serverInput.setText(self.client.server_host)
+        widgets.ipInput.setText(self.client.local_host)
+        widgets.peerportInput.setText(str(self.client.local_port))
+        widgets.btn_repo.setEnabled(False)
+        widgets.btn_fetch.setEnabled(False)
+        widgets.btn_notification.setEnabled(False)
     # HANDLE REPOSITORY
     def addFileToRepo(self, file):
         widgets.repoTable.insertRow(widgets.repoTable.rowCount())
@@ -135,6 +139,13 @@ class MainWindow(QMainWindow):
         for file in files:
             file = File(file[1], file[2], file[3], file[4].replace("_", " "))
             self.addFileToRepo(file)
+    def loadingNotification(self):
+        notifications = self.client.client_listener.get_notifications()
+        widgets.notificationInput.setPlainText("")
+        for notification in notifications:
+            widgets.notificationInput.appendPlainText(f"{notification[0]}: {notification[2]}\n")
+    
+        
     # BUTTONS CLICK
     # Post here your functions for clicked buttons
     # ///////////////////////////////////////////////////////////////
@@ -165,6 +176,28 @@ class MainWindow(QMainWindow):
             widgets.stackedWidget.setCurrentWidget(widgets.notificationPage)
             UIFunctions.resetStyle(self, btnName)
             btn.setStyleSheet(UIFunctions.selectMenu(btn.styleSheet()))
+            self.loadingNotification()
+        if btnName == "btn_git":
+            QDesktopServices.openUrl(QUrl("https://github.com/Minhtuei/file-sharing"))
+        if btnName == "btn_logout":
+            self.client.stop()
+            widgets.btn_connect.setEnabled(True)
+            widgets.btn_repo.setEnabled(False)
+            widgets.btn_fetch.setEnabled(False)
+            widgets.btn_notification.setEnabled(False)
+            widgets.stackedWidget.setCurrentWidget(widgets.homePage)
+            UIFunctions.resetStyle(self, "btn_connect")
+            widgets.btn_connect.setStyleSheet(UIFunctions.selectMenu(widgets.btn_connect.styleSheet()))
+            widgets.loginLabel.setText("Connect to the server")
+            widgets.usernameInput.setText("")
+            widgets.passwordInput.setText("")
+            widgets.registerBtn.setEnabled(True)
+            widgets.loginBtn.setEnabled(True)
+            widgets.serverInfoLabel.setText("Server: ")
+            widgets.hostNameInfoLabel.setText("Host Name: ")
+            widgets.ipInfoLabel.setText("IP Address: ")
+            widgets.peerportInfoLabel.setText("Peer Port: ")
+            self.setUp()
         if btnName == "loginBtn":
             self.client.server_host = widgets.serverInput.text()
             self.client.local_host = widgets.ipInput.text()
@@ -181,13 +214,13 @@ class MainWindow(QMainWindow):
                     return
             sleep(1)
             try:
-                
                 self.client.client_sender.login(widgets.usernameInput.text(),widgets.passwordInput.text(),self.client.local_host,self.client.local_port)
                 widgets.registerBtn.setEnabled(False)
                 widgets.loginBtn.setEnabled(False)
                 sleep(1)
                 if not self.client.client_listener.isSuccessful():
-                    widgets.loginLabel.setText("Login Failed")
+                    notify = self.client.client_listener.get_notifications()[-1][-1]
+                    widgets.loginLabel.setText(notify)
                     widgets.registerBtn.setEnabled(True)
                     widgets.loginBtn.setEnabled(True)
                 else:
@@ -197,6 +230,13 @@ class MainWindow(QMainWindow):
                     widgets.btn_repo.setEnabled(True)
                     widgets.btn_fetch.setEnabled(True)
                     widgets.btn_notification.setEnabled(True)
+                    widgets.stackedWidget.setCurrentWidget(widgets.repositoryPage)
+                    UIFunctions.resetStyle(self, "btn_repo")
+                    widgets.btn_repo.setStyleSheet(UIFunctions.selectMenu(widgets.btn_repo.styleSheet()))
+                    widgets.serverInfoLabel.setText(f"Server: {self.client.server_host}:{self.client.server_port}")
+                    widgets.hostNameInfoLabel.setText(f"Host Name: {widgets.usernameInput.text()}")
+                    widgets.ipInfoLabel.setText(f"IP Address: {self.client.local_host}")
+                    widgets.peerportInfoLabel.setText(f"Peer Port: {self.client.local_port}")        
             except ConnectionRefusedError:
                 widgets.loginLabel.setText("Server is not running. Please start the server first !")
                 return
@@ -225,7 +265,8 @@ class MainWindow(QMainWindow):
                 widgets.loginBtn.setEnabled(False)
                 sleep(1)
                 if not self.client.client_listener.get_notifications()[-1][1] == self.statusCode.REGISTER_SUCCESS():
-                    widgets.loginLabel.setText("Registration Failed")
+                    notify = self.client.client_listener.get_notifications()[-1][-1]
+                    widgets.loginLabel.setText(notify)
                     widgets.registerBtn.setEnabled(True)
                     widgets.loginBtn.setEnabled(True)
                 else:
@@ -276,6 +317,7 @@ class MainWindow(QMainWindow):
             file_name = widgets.searchFileInput.text()
             if self.client.local_respiratory.get_file(file_name) != None:
                 widgets.fetchErrorLabel_2.setText("File is in local repository")
+                widgets.fetchErrorLabel_2.setStyleSheet("color: red")
                 widgets.fetchError_row.setMaximumSize(16777215, 16777215)
             elif file_name == "":
                 widgets.fetchErrorLabel_2.setText("Please enter a file name")
@@ -284,6 +326,7 @@ class MainWindow(QMainWindow):
                 hosts = self.client.fetch(file_name)
                 if hosts == 0:
                     widgets.fetchErrorLabel_2.setText("File not found")
+                    widgets.fetchErrorLabel_2.setStyleSheet("color: red")
                     widgets.fetchError_row.setMaximumSize(16777215, 16777215)
                     return
                 for host in hosts:
@@ -303,14 +346,16 @@ class MainWindow(QMainWindow):
             file_name = widgets.searchFileInput.text()
             if selected_host_info[2] == "Offline":
                 widgets.fetchErrorLabel_2.setText("Host is offline")
+                widgets.fetchErrorLabel_2.setStyleSheet("color: red")
                 widgets.fetchError_row.setMaximumSize(16777215, 16777215)
             else:
                 self.client.download(selected_host_info,file_name)
                 widgets.fetchErrorLabel_2.setText("Download Successful")
+                widgets.fetchErrorLabel_2.setStyleSheet("color: green")
                 widgets.fetchError_row.setMaximumSize(16777215, 16777215)
                 self.loadingRepo()
 
-            
+        
 
 
     # RESIZE EVENTS

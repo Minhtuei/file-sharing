@@ -10,10 +10,13 @@ class AuthController():
     def login(self, hostname, password, ipAddress, peerPort):
         print(f"Login request: {hostname} {password} {ipAddress} {peerPort}")
         self.user = self.database.get_user(hostname)
+        print(self.user)
         if (not self.user):
             return self.response_code.USER_NOT_FOUND()
         elif (self.user[2] != password):
             return self.response_code.WRONG_PASSWORD()
+        elif (self.user[5] == 1):
+            return self.response_code.USER_ALREADY_ONLINE()
         else:
             self.database.update_user(hostname, ipAddress, peerPort)
             return self.response_code.LOGIN_SUCCESS()

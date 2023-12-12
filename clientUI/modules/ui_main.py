@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'mainjGJZzR.ui'
+## Form generated from reading UI file 'mainGDGRhp.ui'
 ##
 ## Created by: Qt User Interface Compiler version 5.14.1
 ##
@@ -1569,6 +1569,13 @@ class Ui_MainWindow(object):
         self.frame.setFrameShadow(QFrame.Raised)
         self.verticalLayout_26 = QVBoxLayout(self.frame)
         self.verticalLayout_26.setObjectName(u"verticalLayout_26")
+        self.notificationTiltle = QLabel(self.frame)
+        self.notificationTiltle.setObjectName(u"notificationTiltle")
+        self.notificationTiltle.setStyleSheet(u"QLabel { font-weight: bold; font-size: 20px; }")
+        self.notificationTiltle.setAlignment(Qt.AlignCenter)
+
+        self.verticalLayout_26.addWidget(self.notificationTiltle)
+
         self.notificationInput = QPlainTextEdit(self.frame)
         self.notificationInput.setObjectName(u"notificationInput")
         self.notificationInput.setStyleSheet(u"background-color: rgb(66, 66, 98);\n"
@@ -1724,7 +1731,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.stackedWidget.setCurrentIndex(2)
+        self.stackedWidget.setCurrentIndex(3)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -1833,6 +1840,8 @@ class Ui_MainWindow(object):
         ___qtablewidgetitem12 = self.fetchTable.horizontalHeaderItem(3)
         ___qtablewidgetitem12.setText(QCoreApplication.translate("MainWindow", u"Online", None));
         self.fetchBtn.setText(QCoreApplication.translate("MainWindow", u"Fetch", None))
+        self.notificationTiltle.setText(QCoreApplication.translate("MainWindow", u"The list below shows the notifications you have received from the server", None))
+        self.notificationInput.setPlainText("")
         self.serverInfoLabel.setText(QCoreApplication.translate("MainWindow", u"Server Address:", None))
         self.hostNameInfoLabel.setText(QCoreApplication.translate("MainWindow", u"Hostname:", None))
         self.ipInfoLabel.setText(QCoreApplication.translate("MainWindow", u"IP Address:", None))

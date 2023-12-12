@@ -107,6 +107,7 @@ class Client:
             self.stop()
     def fetch(self, file_name):
         self.client_sender.fetch(file_name)
+        self.client_listener.notifications.append((datetime.now().strftime("%H:%M:%S-%d/%m/%Y"), None ,f'Fetching file "{file_name}" from the server.'))
         while self.client_listener.get_fetch_peers() == None:
             sleep(1)
         return self.client_listener.get_fetch_peers()
@@ -122,7 +123,7 @@ class Client:
             sleep(1)
             duplicate_files = self.local_respiratory.count_duplicate_files(file_name)
             if duplicate_files > 0:
-                file_name.split(".")
+                file_name = file_name.split(".")
                 file_name = f"{file_name[0]}({duplicate_files}).{file_name[1]}"
             with open(os.path.join(self.local_respiratory_dir, file_name), "wb") as file:
                 while True:
@@ -132,7 +133,8 @@ class Client:
                         file.write(data)
                         break
                     file.write(data)
-            print("File downloaded successfully.") 
+            
+            self.client_listener.notifications.append((datetime.now().strftime("%H:%M:%S-%d/%m/%Y"), self.client_listener.statusCode.DOWNLOAD_SUCCESS() ,f'File "{file_name}" downloaded from {selected_host[0]}/{selected_host[1]}.'))
             file_size = os.path.getsize(os.path.join(self.local_respiratory_dir, file_name))
             file_date = datetime.now().strftime("%H:%M:%S-%d/%m/%Y")
             file_description = f"Downloaded from {selected_host[0]}".replace(" ", "_")

@@ -37,7 +37,7 @@ class Database:
         self.cursor.execute("UPDATE users SET isOnline=? WHERE hostname=?", (status, hostname))
         self.conn.commit()
     def add_user(self, hostname, password, ipAddress, peerPort):
-        self.cursor.execute("INSERT INTO users VALUES (NULL, ?, ?, ?, ?, ?)", (hostname, password, ipAddress, peerPort, 1))
+        self.cursor.execute("INSERT INTO users VALUES (NULL, ?, ?, ?, ?, ?)", (hostname, password, ipAddress, peerPort, 0))
         self.conn.commit()
     def insert_file(self, owner_id, file_name, file_size, file_date, file_description):
         self.cursor.execute("INSERT INTO file VALUES (NULL, ?, ?, ?, ?, ?)", (owner_id, file_name, file_size, file_date, file_description))

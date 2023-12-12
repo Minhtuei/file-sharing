@@ -64,6 +64,8 @@ class ClientListener(Listener):
                         self.notifications.append((datetime.now().strftime("%H:%M:%S-%d/%m/%Y"), response_code ,"User not found."))
                     elif response_code == self.statusCode.WRONG_PASSWORD():
                         self.notifications.append((datetime.now().strftime("%H:%M:%S-%d/%m/%Y"), response_code ,"Wrong password."))
+                    elif response_code == self.statusCode.USER_ALREADY_ONLINE():
+                        self.notifications.append((datetime.now().strftime("%H:%M:%S-%d/%m/%Y"), response_code ,"User already online."))
                     elif response_code == self.statusCode.USER_ALREADY_EXISTS():
                         self.notifications.append((datetime.now().strftime("%H:%M:%S-%d/%m/%Y"), response_code ,"User already exists."))
                     elif response_code == self.statusCode.UPLOAD_SUCCESS():
@@ -137,7 +139,7 @@ class PeerListener(Listener):
                                 conn.sendall(data)
                         conn.sendall(b"EOF")
                         print("File sent.")
-                        self.notifications.append((datetime.now().strftime("%H:%M:%S-%d/%m/%Y"), self.statusCode.DOWNLOAD_SUCCESS() ,"File sent."))
+                        self.notifications.append((datetime.now().strftime("%H:%M:%S-%d/%m/%Y"), self.statusCode.DOWNLOAD_SUCCESS() ,f'File "{file_name}" sent to {addr[0]}:{addr[1]}.'))
                         conn.close()
 
         except ConnectionAbortedError:
