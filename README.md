@@ -16,7 +16,6 @@ There are several commands to control the server, which format is command "param
 - ping "hostname": check if the host with hostname is online
 - discover "hostname": check the local files of host hostname
 ### Client
-### Server
 In the client folder, run command below to start the server:
 ```bash
 python .\client.py
