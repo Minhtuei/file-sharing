@@ -95,6 +95,7 @@ class ClientListener(Listener):
                         for peer in peers:
                             print(f"Hostname: {peer[0]}, IP Address: {peer[1]}, Port: {peer[2]}, Online: {peer[3]}")
                         selected_peer = None
+                        print(self.fetch_peer)
                         while self.fetch_peer == None:
                             selected_peer = int(input("Enter the index of the peer you want to download from (-1 to quit): "))
                             if (selected_peer < -1 or selected_peer >= len(peers) or selected_peer == None):

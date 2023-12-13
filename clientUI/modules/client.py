@@ -121,10 +121,14 @@ class Client:
             self.peer_client.sendall(packed_length)
             self.peer_client.sendall(mgs.encode())
             sleep(1)
-            duplicate_files = self.local_respiratory.count_duplicate_files(file_name)
-            if duplicate_files > 0:
-                file_name = file_name.split(".")
-                file_name = f"{file_name[0]}({duplicate_files}).{file_name[1]}"
+            for file in self.local_respiratory.get_all_files():
+                if file[1] == file_name:
+                    file_name = file_name.split(".")
+                    handle_file_name = file_name[0].split("(")
+                    if len(handle_file_name) == 1:
+                        file_name = f"{handle_file_name[0]}(1).{file_name[1]}"
+                    else:
+                        file_name = f"{handle_file_name[0]}({int(handle_file_name[1][:-1])+1}).{file_name[1]}"
             with open(os.path.join(self.local_respiratory_dir, file_name), "wb") as file:
                 while True:
                     data = self.peer_client.recv(4096)
@@ -141,6 +145,5 @@ class Client:
             new_file = File(file_name, file_size,file_date, file_description)
             self.local_respiratory.add_file(new_file)
             self.client_sender.publish(new_file) 
-
         except Exception as e:
             print(f"Exception in download: {e}")

@@ -14,10 +14,10 @@ from Modules.Database import Database
 
 class Client:
     def __init__(self):
-        self.server_host = socket.gethostbyname_ex(socket.gethostname())[2][-1]
+        self.server_host = None
         self.server_port = 5000
-        self.local_host = socket.gethostbyname_ex(socket.gethostname())[2][-1]
-        self.local_port = 5001
+        self.local_host = None
+        self.local_port = None
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.local_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.peer_listener = PeerListener(self.local_server)
@@ -36,8 +36,24 @@ class Client:
 
     def start(self):
         server_host_ = input("Enter server host (auto for automatic): ")
-        if server_host_ != "auto":
-            self.server_host = server_host_
+        ip_address = input ("Enter your ip address (auto for automatic): ")
+        local_port = input ("Enter your port (auto for automatic): ")
+        try:
+            if local_port != "auto" and not int(local_port) in range(0, 65536):
+                print("Invalid port. Please try again.")
+                return
+        except ValueError:
+            print("Invalid port. Please try again.")
+            return
+        if len(server_host_.split(".")) != 4 and server_host_ != "auto":
+            print("Invalid ip address. Please try again.")
+            return
+        if len(ip_address.split(".")) != 4 and ip_address != "auto":
+            print("Invalid ip address. Please try again.")
+            return
+        self.server_host = server_host_ if server_host_ != "auto" else socket.gethostbyname_ex(socket.gethostname())[2][-1]
+        self.local_host = ip_address if ip_address != "auto" else socket.gethostbyname_ex(socket.gethostname())[2][-1]
+        self.local_port = local_port if local_port != "auto" else 5001
         try:
             self.client.connect((self.server_host, self.server_port))
             print(self.client)
@@ -69,60 +85,16 @@ class Client:
             if msg == "login":
                 username = input("Enter your username: ")
                 password = input("Enter your password: ")
-                ipAddr = input("Enter your ip address (auto for automatic): ")
-                peerPort = input("Enter your peer port (auto for automatic): ")
-                if peerPort != "auto":
-                    try:
-                        if not int(peerPort) in range(0, 65535):
-                            print("Invalid port number. Please try again.")
-                        continue
-                    except ValueError:
-                        print("Invalid input. Port number must be an integer. Please try again.")
-                        continue
-                if len(username) == 0 or len(password) == 0:
-                    print("Invalid username or password. Please try again.")
-                    continue
-                if len(ipAddr.split(".")) != 4 and ipAddr != "auto":
-                    print("Invalid ip address. Please try again.")
-                    continue
-                if ipAddr == "auto":
-                    ipAddr = self.local_host
-                if peerPort == "auto":
-                    peerPort = self.local_port
-                self.client_sender.login(username, password, ipAddr, peerPort)
-                self.local_host = ipAddr
-                self.local_port = peerPort
+                self.client_sender.login(username, password, self.local_host, self.local_port )
             elif msg == "register":
                 username = input("Enter your username: ")
                 password = input("Enter your password: ")
-                ipAddr = input("Enter your ip address (auto for automatic): ")
-                peerPort = input("Enter your peer port (auto for automatic): ")
-                if peerPort != "auto":
-                    try:
-                        if not int(peerPort) in range(0, 65535):
-                            print("Invalid port number. Please try again.")
-                        continue
-                    except ValueError:
-                        print("Invalid input. Port number must be an integer. Please try again.")
-                        continue
-                if len(username) == 0 or len(password) == 0:
-                    print("Invalid username or password. Please try again.")
-                    continue
-                if len(ipAddr.split(".")) != 4 and ipAddr != "auto":
-                    print("Invalid ip address. Please try again.")
-                    continue
-                if ipAddr == "auto":
-                    ipAddr = self.local_host
-                if peerPort == "auto":
-                    peerPort = self.local_port
-                self.client_sender.register(username, password, ipAddr, peerPort)
-                self.local_host = ipAddr
-                self.local_port = peerPort
+                self.client_sender.register(username, password, self.local_host, self.local_port )
             else:
                 print("Invalid command. Please try again.")
             sleep(1)
     
-        self.local_server.bind((self.local_host, self.local_port))
+        self.local_server.bind((self.local_host, int(self.local_port)))
         self.listen_Peer = Thread(target=self.peer_listener.start)
         self.listen_Peer.start()
         self.peer_listener.set_local_repository(self.local_respiratory_dir)
@@ -202,10 +174,14 @@ class Client:
             self.peer_client.sendall(packed_length)
             self.peer_client.sendall(mgs.encode())
             sleep(1)
-            duplicate_files = self.local_respiratory.count_duplicate_files(file_name)
-            if duplicate_files > 0:
-                file_name = file_name.split(".")
-                file_name = f"{file_name[0]}({duplicate_files}).{file_name[1]}"
+            for file in self.local_respiratory.get_all_files():
+                if file[1] == file_name:
+                    file_name = file_name.split(".")
+                    handle_file_name = file_name[0].split("(")
+                    if len(handle_file_name) == 1:
+                        file_name = f"{handle_file_name[0]}(1).{file_name[1]}"
+                    else:
+                        file_name = f"{handle_file_name[0]}({int(handle_file_name[1][:-1])+1}).{file_name[1]}"
             with open(os.path.join(self.local_respiratory_dir, file_name), "wb") as file:
                 while True:
                     data = self.peer_client.recv(4096)
@@ -222,6 +198,7 @@ class Client:
             new_file = File(file_name, file_size,file_date, file_description)
             self.local_respiratory.add_file(new_file)
             self.client_sender.publish(new_file) 
+            self.client_listener.fetch_peer = None
         except OSError as e:
             print("The server is not running. Please try again later.")
             self.stop()
