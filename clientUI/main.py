@@ -341,11 +341,13 @@ class MainWindow(QMainWindow):
                 widgets.fetchErrorLabel_2.setText("")
                 widgets.fetchError_row.setMaximumSize(0, 0)
         if btnName == "fetchBtn":
+            widgets.fetchErrorLabel_2.setText("")
             widgets.fetchError_row.setMaximumSize(0, 0)
             selected_host = widgets.fetchTable.selectedItems()            
-            selected_host_info = (selected_host[0].text(),selected_host[1].text(),selected_host[2].text())
+            selected_host_info = (selected_host[0].text(),selected_host[1].text(),selected_host[2].text(),selected_host[3].text())
             file_name = widgets.searchFileInput.text()
-            if selected_host_info[2] == "Offline":
+            print(selected_host_info)
+            if selected_host_info[3] == "Offline":
                 widgets.fetchErrorLabel_2.setText("Host is offline")
                 widgets.fetchErrorLabel_2.setStyleSheet("color: red")
                 widgets.fetchError_row.setMaximumSize(16777215, 16777215)
