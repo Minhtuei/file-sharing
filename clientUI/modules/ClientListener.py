@@ -131,13 +131,15 @@ class PeerListener(Listener):
                         file_name = parameter[0]
                         # read the file
                         file_path = os.path.join(self.local_repository_dir, file_name)
+                        file_size = os.path.getsize(file_path)
+                        conn.sendall(file_size.to_bytes(4, byteorder='big'))
+                        sleep(1)
                         with open(file_path, "rb") as file:
                             while True:
                                 data = file.read(4096)  # Use a larger buffer size for optimization
                                 if not data:
                                     break
-                                conn.sendall(data)
-                        conn.sendall(b"EOF")
+                                conn.send(data)
                         print("File sent.")
                         self.notifications.append((datetime.now().strftime("%H:%M:%S-%d/%m/%Y"), self.statusCode.DOWNLOAD_SUCCESS() ,f'File "{file_name}" sent to {addr[0]}:{addr[1]}.'))
                         conn.close()

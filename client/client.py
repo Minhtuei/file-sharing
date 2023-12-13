@@ -182,14 +182,15 @@ class Client:
                         file_name = f"{handle_file_name[0]}(1).{file_name[1]}"
                     else:
                         file_name = f"{handle_file_name[0]}({int(handle_file_name[1][:-1])+1}).{file_name[1]}"
+            receive_file_size_bytes = self.peer_client.recv(4)
+            receive_file_size = int.from_bytes(receive_file_size_bytes, byteorder='big')
             with open(os.path.join(self.local_respiratory_dir, file_name), "wb") as file:
                 while True:
                     data = self.peer_client.recv(4096)
-                    if b"EOF" in data:
-                        data = data.replace(b"EOF", b"")
-                        file.write(data)
-                        break
                     file.write(data)
+                    receive_file_size -= len(data)
+                    if receive_file_size <= 0:
+                        break
             print("File downloaded successfully.") 
             self.client_listener.notifications.append((datetime.now().strftime("%H:%M:%S-%d/%m/%Y"), self.client_listener.statusCode.DOWNLOAD_SUCCESS() ,f'File "{file_name}" downloaded from {selected_peer[0]}/{selected_peer[1]}.'))
             file_size = os.path.getsize(os.path.join(self.local_respiratory_dir, file_name))

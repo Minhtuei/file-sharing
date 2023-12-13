@@ -341,6 +341,7 @@ class MainWindow(QMainWindow):
                 widgets.fetchErrorLabel_2.setText("")
                 widgets.fetchError_row.setMaximumSize(0, 0)
         if btnName == "fetchBtn":
+            widgets.fetchError_row.setMaximumSize(0, 0)
             selected_host = widgets.fetchTable.selectedItems()            
             selected_host_info = (selected_host[0].text(),selected_host[1].text(),selected_host[2].text())
             file_name = widgets.searchFileInput.text()
